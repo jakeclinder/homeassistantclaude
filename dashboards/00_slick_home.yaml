@@ -1,0 +1,401 @@
+title: Home
+views:
+  - title: Home
+    path: home
+    type: sections
+    max_columns: 4
+    sections:
+
+      # ════════════════════════════════════════════════════════════════════════
+      # HERO: Clock + Weather
+      # ════════════════════════════════════════════════════════════════════════
+      - type: grid
+        column_span: 4
+        cards:
+          - type: custom:clock-weather-card
+            entity: weather.pirateweather
+            title: Jake's Home
+            hide_today_section: false
+            hide_forecast_section: false
+            hourly_forecast: true
+            forecast_rows: 5
+            locale: en-US
+            time_format: 12
+            date_pattern: "EEE, MMM d"
+            animated_icon: true
+
+      # ════════════════════════════════════════════════════════════════════════
+      # STATUS BAR: chips row
+      # ════════════════════════════════════════════════════════════════════════
+      - type: grid
+        column_span: 4
+        cards:
+          - type: custom:mushroom-chips-card
+            alignment: center
+            chips:
+              - type: template
+                icon: mdi:account
+                icon_color: "{{ 'green' if is_state('person.jake', 'home') else 'grey' }}"
+                content: "{{ 'Jake: Home' if is_state('person.jake', 'home') else 'Jake: Away' }}"
+
+              - type: spacer
+
+              - type: template
+                icon: mdi:shield-home
+                icon_color: >
+                  {% if is_state('alarm_control_panel.blink_marathon', 'disarmed') %}green
+                  {% elif is_state('alarm_control_panel.blink_marathon', 'armed_away') %}red
+                  {% else %}orange{% endif %}
+                content: >
+                  {% set s = states('alarm_control_panel.blink_marathon') %}
+                  {% if s == 'armed_away' %}Armed Away
+                  {% elif s == 'disarmed' %}Disarmed
+                  {% else %}{{ s | title }}{% endif %}
+
+              - type: spacer
+
+              - type: template
+                icon: "{{ 'mdi:lock' if is_state('lock.front_door', 'locked') else 'mdi:lock-open-alert' }}"
+                icon_color: "{{ 'green' if is_state('lock.front_door', 'locked') else 'red' }}"
+                content: "{{ 'Locked' if is_state('lock.front_door', 'locked') else '⚠️ UNLOCKED' }}"
+
+              - type: spacer
+
+              - type: template
+                icon: mdi:solar-power-variant
+                icon_color: >
+                  {% set kw = states('sensor.envoy_202207116699_current_power_production') | float(0) %}
+                  {% if kw > 3 %}yellow{% elif kw > 1 %}amber{% else %}grey{% endif %}
+                content: "{{ states('sensor.envoy_202207116699_current_power_production') | float(0) | round(2) }} kW"
+
+              - type: spacer
+
+              - type: template
+                icon: >
+                  {% set out = states('sensor.average_outdoor_temperature') | float(0) %}
+                  {% set inn = states('sensor.avg_indoor_temp') | float(0) %}
+                  {% if out < inn and out > 62 and out < 80 %}mdi:window-open-variant
+                  {% elif out >= 85 %}mdi:weather-sunny-alert
+                  {% elif inn > 76 %}mdi:snowflake
+                  {% elif inn < 67 %}mdi:fire
+                  {% else %}mdi:home-thermometer{% endif %}
+                icon_color: >
+                  {% set out = states('sensor.average_outdoor_temperature') | float(0) %}
+                  {% set inn = states('sensor.avg_indoor_temp') | float(0) %}
+                  {% if out < inn and out > 62 and out < 80 %}green
+                  {% elif out >= 85 %}red
+                  {% elif inn > 76 %}blue
+                  {% elif inn < 67 %}deep-orange
+                  {% else %}green{% endif %}
+                content: >
+                  {{ states('sensor.avg_indoor_temp') | float(0) | round(0) | int }}° in ·
+                  {{ states('sensor.average_outdoor_temperature') | float(0) | round(0) | int }}° out
+
+              - type: spacer
+
+              - type: template
+                icon: "{{ 'mdi:robot-vacuum' if is_state('vacuum.q5_max', 'docked') else 'mdi:robot-vacuum-alert' }}"
+                icon_color: "{{ 'teal' if is_state('vacuum.q5_max', 'docked') else 'orange' }}"
+                content: "{{ states('vacuum.q5_max') | title }}"
+
+      # ════════════════════════════════════════════════════════════════════════
+      # ROW: Temperature graph | Solar graph
+      # ════════════════════════════════════════════════════════════════════════
+
+      - type: grid
+        title: Temperature
+        column_span: 2
+        cards:
+          - type: custom:mini-graph-card
+            entities:
+              - entity: sensor.avg_indoor_temp
+                name: Indoor
+                color: "#4fc3f7"
+              - entity: sensor.average_outdoor_temperature
+                name: Outdoor
+                color: "#ff8a65"
+            name: Indoor vs Outdoor (12h)
+            icon: mdi:thermometer
+            hours_to_show: 12
+            points_per_hour: 2
+            line_width: 2.5
+            show:
+              labels: true
+              points: false
+              legend: true
+              fill: fade
+          - type: grid
+            columns: 2
+            square: false
+            cards:
+              - type: custom:mushroom-entity-card
+                entity: sensor.avg_indoor_temp
+                name: Avg Indoor
+                icon: mdi:home-thermometer
+                icon_color: light-blue
+                fill_container: true
+              - type: custom:mushroom-entity-card
+                entity: sensor.average_outdoor_temperature
+                name: Outdoor
+                icon: mdi:thermometer-high
+                icon_color: orange
+                fill_container: true
+              - type: custom:mushroom-entity-card
+                entity: sensor.nursery_temp_temperature
+                name: Nursery
+                icon: mdi:baby-face-outline
+                icon_color: purple
+                fill_container: true
+              - type: custom:mushroom-entity-card
+                entity: sensor.patiotempsonoff_temperature
+                name: Patio
+                icon: mdi:thermometer
+                icon_color: deep-orange
+                fill_container: true
+
+      - type: grid
+        title: Solar Production
+        column_span: 2
+        cards:
+          - type: custom:mini-graph-card
+            entities:
+              - entity: sensor.envoy_202207116699_current_power_production
+                name: Solar Output
+                color: "#ffd54f"
+            name: Solar Production (12h)
+            icon: mdi:solar-power-variant
+            hours_to_show: 12
+            points_per_hour: 2
+            line_width: 2.5
+            show:
+              labels: true
+              points: false
+              legend: false
+              fill: fade
+            color_thresholds:
+              - value: 0
+                color: "#546e7a"
+              - value: 1
+                color: "#ffb300"
+              - value: 3
+                color: "#ffd54f"
+          - type: grid
+            columns: 3
+            square: false
+            cards:
+              - type: custom:mushroom-entity-card
+                entity: sensor.envoy_202207116699_current_power_production
+                name: Right Now
+                icon: mdi:lightning-bolt
+                icon_color: yellow
+                fill_container: true
+              - type: custom:mushroom-entity-card
+                entity: sensor.envoy_202207116699_energy_production_today
+                name: Today
+                icon: mdi:solar-panel
+                icon_color: amber
+                fill_container: true
+              - type: custom:mushroom-entity-card
+                entity: sensor.envoy_202207116699_energy_production_last_seven_days
+                name: 7 Days
+                icon: mdi:chart-line
+                icon_color: orange
+                fill_container: true
+
+      # ════════════════════════════════════════════════════════════════════════
+      # ROW: Controls | Plants | Cats | Security + Travel
+      # ════════════════════════════════════════════════════════════════════════
+
+      - type: grid
+        title: Controls
+        column_span: 1
+        cards:
+          - type: custom:mushroom-entity-card
+            entity: vacuum.q5_max
+            name: Roborock
+            icon: mdi:robot-vacuum
+            icon_color: teal
+          - type: custom:mushroom-entity-card
+            entity: switch.patio_light_switch
+            name: Patio Light
+            icon: mdi:outdoor-lamp
+            icon_color: yellow
+          - type: custom:mushroom-entity-card
+            entity: switch.krissy_pc_power_guarded
+            name: Krissy PC
+            icon: mdi:desktop-tower
+            icon_color: blue
+          - type: custom:mushroom-entity-card
+            entity: switch.musiccompandaudiostuff
+            name: Music Room
+            icon: mdi:music
+            icon_color: purple
+
+      - type: grid
+        title: Plants
+        column_span: 1
+        cards:
+          - type: grid
+            columns: 2
+            square: false
+            cards:
+              - type: custom:mushroom-entity-card
+                entity: switch.clock_wall_grow_light
+                name: Clock Wall
+                icon: mdi:flower
+                icon_color: green
+                fill_container: true
+              - type: custom:mushroom-entity-card
+                entity: switch.living_room_hallway_plant_light
+                name: Hallway
+                icon: mdi:flower
+                icon_color: green
+                fill_container: true
+              - type: custom:mushroom-entity-card
+                entity: switch.kitchen_bench_grow_light
+                name: Kitchen
+                icon: mdi:flower
+                icon_color: light-green
+                fill_container: true
+              - type: custom:mushroom-entity-card
+                entity: switch.krissy_bedside_grow_light
+                name: Krissy Bed
+                icon: mdi:flower
+                icon_color: light-green
+                fill_container: true
+
+      - type: grid
+        title: Harry & Gwen
+        column_span: 1
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Harry
+            secondary: >
+              {{ states('sensor.harry_visits_today') }} visits today ·
+              {{ states('sensor.harry_weight') | float(0) | round(2) }} lbs
+            icon: mdi:cat
+            icon_color: orange
+          - type: custom:mushroom-template-card
+            primary: Gwen
+            secondary: >
+              {{ states('sensor.gwen_visits_today') }} visits today ·
+              {{ states('sensor.gwen_weight') | float(0) | round(2) }} lbs
+            icon: mdi:cat
+            icon_color: pink
+          - type: gauge
+            entity: sensor.turdeater_waste_drawer
+            name: Waste Drawer
+            min: 0
+            max: 100
+            needle: false
+            severity:
+              green: 0
+              yellow: 60
+              red: 80
+          - type: gauge
+            entity: sensor.turdeater_litter_level
+            name: Litter Level
+            min: 0
+            max: 100
+            needle: false
+            severity:
+              red: 0
+              yellow: 30
+              green: 60
+
+      - type: grid
+        title: Security & Travel
+        column_span: 1
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Front Door
+            secondary: >
+              {{ states('lock.front_door') | title }} ·
+              🔋 {{ states('sensor.front_door_battery') }}%
+              {% if states('sensor.front_door_battery') | int(100) < 25 %} ⚠️{% endif %}
+            icon: mdi:door-closed-lock
+            icon_color: "{{ 'green' if is_state('lock.front_door', 'locked') else 'red' }}"
+          - type: custom:mushroom-template-card
+            primary: Lock 2
+            secondary: >
+              {{ states('lock.front_door_2') | title }} ·
+              🔋 {{ states('sensor.front_door_battery_2') }}%
+              {% if states('sensor.front_door_battery_2') | int(100) < 25 %} ⚠️{% endif %}
+            icon: mdi:door-closed-lock
+            icon_color: "{{ 'green' if is_state('lock.front_door_2', 'locked') else 'red' }}"
+          - type: custom:mushroom-entity-card
+            entity: sensor.waze_travel_time
+            name: "→ Krissy Work"
+            icon: mdi:map-marker-path
+            icon_color: blue
+          - type: custom:mushroom-entity-card
+            entity: sensor.waze_travel_time_2
+            name: "← Krissy Work"
+            icon: mdi:map-marker-path
+            icon_color: light-blue
+          - type: custom:mushroom-entity-card
+            entity: sensor.waze_travel_time_3
+            name: "→ Santee"
+            icon: mdi:map-marker-path
+            icon_color: teal
+
+      # ════════════════════════════════════════════════════════════════════════
+      # BOTTOM: Shopping list
+      # ════════════════════════════════════════════════════════════════════════
+      - type: grid
+        title: Shopping
+        column_span: 2
+        cards:
+          - type: todo-list
+            entity: todo.shopping_list
+            title: Shopping List
+
+      - type: grid
+        title: Nursery — Theo
+        column_span: 2
+        cards:
+          - type: custom:mushroom-template-card
+            primary: >
+              {% set temp = states('sensor.nursery_temp_temperature') | float(0) %}
+              {% set rh = states('sensor.nursery_temp_humidity') | float(0) %}
+              {% if 68 <= temp <= 72 and 40 <= rh <= 60 %}Nursery is comfortable
+              {% elif temp > 72 %}Too warm in nursery — {{ temp | round(1) }}°F
+              {% elif temp < 68 %}Too cool in nursery — {{ temp | round(1) }}°F
+              {% elif rh < 40 %}Low humidity — consider humidifier
+              {% else %}High humidity — consider ventilation{% endif %}
+            secondary: >
+              {{ states('sensor.nursery_temp_temperature') | float(0) | round(1) }}°F ·
+              {{ states('sensor.nursery_temp_humidity') | float(0) | round(0) }}% RH ·
+              Ideal: 68–72°F, 40–60%
+            icon: mdi:baby-face-outline
+            icon_color: >
+              {% set temp = states('sensor.nursery_temp_temperature') | float(0) %}
+              {% set rh = states('sensor.nursery_temp_humidity') | float(0) %}
+              {% if 68 <= temp <= 72 and 40 <= rh <= 60 %}green
+              {% elif temp > 74 or temp < 66 %}red
+              {% else %}orange{% endif %}
+            layout: horizontal
+          - type: grid
+            columns: 2
+            square: false
+            cards:
+              - type: gauge
+                entity: sensor.nursery_temp_temperature
+                name: Temp
+                min: 60
+                max: 85
+                needle: true
+                severity:
+                  green: 68
+                  yellow: 73
+                  red: 78
+              - type: gauge
+                entity: sensor.nursery_temp_humidity
+                name: Humidity
+                min: 0
+                max: 100
+                needle: true
+                severity:
+                  red: 0
+                  yellow: 35
+                  green: 40
