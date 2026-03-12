@@ -1,0 +1,156 @@
+title: Nursery
+views:
+  - title: Theo's Room
+    path: nursery
+    type: sections
+    max_columns: 3
+    sections:
+
+      # ── Comfort Status ───────────────────────────────────────────────────────
+      - type: grid
+        column_span: 3
+        cards:
+          - type: custom:mushroom-template-card
+            primary: >
+              {% set temp = states('sensor.nursery_temp_temperature') | float(0) %}
+              {% set rh = states('sensor.nursery_temp_humidity') | float(0) %}
+              {% set temp_ok = 68 <= temp <= 72 %}
+              {% set rh_ok = 40 <= rh <= 60 %}
+              {% if temp_ok and rh_ok %}
+                Nursery is comfortable for Theo
+              {% elif not temp_ok and temp < 68 %}
+                Nursery is too cool — {{ temp | round(1) }}°F
+              {% elif not temp_ok and temp > 72 %}
+                Nursery is too warm — {{ temp | round(1) }}°F
+              {% elif not rh_ok and rh < 40 %}
+                Humidity is low — consider a humidifier ({{ rh | round(0) }}%)
+              {% elif not rh_ok and rh > 60 %}
+                Humidity is high — consider ventilation ({{ rh | round(0) }}%)
+              {% else %}
+                Check nursery conditions
+              {% endif %}
+            secondary: >
+              {% set temp = states('sensor.nursery_temp_temperature') | float(0) %}
+              {% set rh = states('sensor.nursery_temp_humidity') | float(0) %}
+              {{ temp | round(1) }}°F · {{ rh | round(0) }}% RH — Ideal: 68–72°F, 40–60% RH
+            icon: >
+              {% set temp = states('sensor.nursery_temp_temperature') | float(0) %}
+              {% set rh = states('sensor.nursery_temp_humidity') | float(0) %}
+              {% set temp_ok = 68 <= temp <= 72 %}
+              {% set rh_ok = 40 <= rh <= 60 %}
+              {% if temp_ok and rh_ok %}mdi:baby-face
+              {% elif temp > 72 %}mdi:thermometer-high
+              {% elif temp < 68 %}mdi:thermometer-low
+              {% else %}mdi:water-percent{% endif %}
+            icon_color: >
+              {% set temp = states('sensor.nursery_temp_temperature') | float(0) %}
+              {% set rh = states('sensor.nursery_temp_humidity') | float(0) %}
+              {% set temp_ok = 68 <= temp <= 72 %}
+              {% set rh_ok = 40 <= rh <= 60 %}
+              {% if temp_ok and rh_ok %}green
+              {% elif temp > 74 or temp < 66 %}red
+              {% elif temp > 72 or temp < 68 %}orange
+              {% else %}yellow{% endif %}
+            layout: horizontal
+
+      # ── Temperature Gauge ────────────────────────────────────────────────────
+      - type: grid
+        title: Temperature
+        column_span: 1
+        cards:
+          - type: gauge
+            entity: sensor.nursery_temp_temperature
+            name: Nursery Temp
+            min: 60
+            max: 85
+            needle: true
+            severity:
+              green: 68
+              yellow: 73
+              red: 78
+          - type: tile
+            entity: sensor.nursery_temp_temperature
+            name: Current Temp
+            icon: mdi:thermometer
+          - type: custom:mushroom-template-card
+            primary: Temperature Status
+            secondary: >
+              {% set temp = states('sensor.nursery_temp_temperature') | float(0) %}
+              {% if 68 <= temp <= 72 %}✅ Ideal range (68–72°F)
+              {% elif temp < 68 %}⬇️ Below ideal — {{ (68 - temp) | round(1) }}°F too cool
+              {% else %}⬆️ Above ideal — {{ (temp - 72) | round(1) }}°F too warm{% endif %}
+            icon: mdi:thermometer-check
+            icon_color: >
+              {% set temp = states('sensor.nursery_temp_temperature') | float(0) %}
+              {% if 68 <= temp <= 72 %}green{% elif temp < 66 or temp > 74 %}red{% else %}orange{% endif %}
+
+      # ── Humidity Gauge ───────────────────────────────────────────────────────
+      - type: grid
+        title: Humidity
+        column_span: 1
+        cards:
+          - type: gauge
+            entity: sensor.nursery_temp_humidity
+            name: Nursery Humidity
+            min: 0
+            max: 100
+            needle: true
+            severity:
+              red: 0
+              yellow: 35
+              green: 40
+          - type: tile
+            entity: sensor.nursery_temp_humidity
+            name: Current Humidity
+            icon: mdi:water-percent
+          - type: custom:mushroom-template-card
+            primary: Humidity Status
+            secondary: >
+              {% set rh = states('sensor.nursery_temp_humidity') | float(0) %}
+              {% if 40 <= rh <= 60 %}✅ Ideal range (40–60%)
+              {% elif rh < 40 %}⬇️ Too dry — consider humidifier
+              {% else %}⬆️ Too humid — consider ventilation{% endif %}
+            icon: mdi:water-check
+            icon_color: >
+              {% set rh = states('sensor.nursery_temp_humidity') | float(0) %}
+              {% if 40 <= rh <= 60 %}green{% elif rh < 30 or rh > 70 %}red{% else %}orange{% endif %}
+
+      # ── Sensor Battery ───────────────────────────────────────────────────────
+      - type: grid
+        title: Sensor
+        column_span: 1
+        cards:
+          - type: tile
+            entity: sensor.nursery_temp_battery
+            name: Sensor Battery
+            icon: mdi:battery
+
+      # ── Baby Lists ───────────────────────────────────────────────────────────
+      - type: grid
+        title: Theo — Projects & Schedule
+        column_span: 2
+        cards:
+          - type: todo-list
+            entity: todo.baby_projects
+            title: Baby Projects
+          - type: todo-list
+            entity: todo.baby_schedule
+            title: Baby Schedule
+
+      # ── Calendars ────────────────────────────────────────────────────────────
+      - type: grid
+        title: Family Calendar
+        column_span: 3
+        cards:
+          - type: calendar
+            entities:
+              - entity: calendar.family
+                color: green
+              - entity: calendar.jakeclinder_gmail_com
+                color: blue
+              - entity: calendar.krissj_morrow_gmail_com
+                color: pink
+              - entity: calendar.birthdays
+                color: orange
+            title: Family Calendar
+            initial_view: listWeek

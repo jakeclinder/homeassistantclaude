@@ -1,0 +1,249 @@
+title: Security
+views:
+  - title: Security
+    path: security
+    type: sections
+    max_columns: 3
+    sections:
+
+      # ── Alarm & Locks ────────────────────────────────────────────────────────
+      - type: grid
+        title: Alarm & Locks
+        column_span: 1
+        cards:
+          - type: alarm-panel
+            entity: alarm_control_panel.blink_marathon
+            name: Blink Alarm
+          - type: tile
+            entity: lock.front_door
+            name: Front Door Lock
+          - type: tile
+            entity: lock.front_door_2
+            name: Front Door Lock 2
+          - type: custom:mushroom-template-card
+            primary: >
+              Lock Battery Warning
+            secondary: >
+              Lock 1: {{ states('sensor.front_door_battery') }}% · Lock 2: {{ states('sensor.front_door_battery_2') }}%
+            icon: mdi:battery-alert
+            icon_color: >
+              {% set b1 = states('sensor.front_door_battery') | int(100) %}
+              {% set b2 = states('sensor.front_door_battery_2') | int(100) %}
+              {% if b1 < 20 or b2 < 20 %}red{% elif b1 < 30 or b2 < 30 %}orange{% else %}green{% endif %}
+
+      # ── Motion Sensors ───────────────────────────────────────────────────────
+      - type: grid
+        title: Motion Sensors
+        column_span: 1
+        cards:
+          - type: tile
+            entity: binary_sensor.front_door_motion
+            name: Front Door Motion
+            icon: mdi:motion-sensor
+          - type: tile
+            entity: binary_sensor.patio_motion
+            name: Patio Motion (Blink)
+            icon: mdi:motion-sensor
+          - type: tile
+            entity: binary_sensor.cat_house_motion
+            name: Cat House Motion
+            icon: mdi:motion-sensor
+          - type: tile
+            entity: binary_sensor.xt_3562_motion
+            name: XT-3562 Motion
+            icon: mdi:motion-sensor
+          - type: tile
+            entity: binary_sensor.xt_9953_motion
+            name: XT-9953 Motion
+            icon: mdi:motion-sensor
+          - type: tile
+            entity: binary_sensor.pationew_motion
+            name: Patio (Reolink) Motion
+            icon: mdi:motion-sensor
+          - type: tile
+            entity: binary_sensor.pationew_person
+            name: Patio Person Detected
+            icon: mdi:account-alert
+          - type: tile
+            entity: binary_sensor.bedroom_motion
+            name: Bedroom Motion
+            icon: mdi:motion-sensor
+          - type: tile
+            entity: binary_sensor.bedroom_person
+            name: Bedroom Person
+            icon: mdi:account-alert
+
+      # ── Camera: Front Door (Blink) ───────────────────────────────────────────
+      - type: grid
+        title: Front Door
+        column_span: 1
+        cards:
+          - type: picture-entity
+            entity: camera.front_door
+            camera_view: live
+            show_name: true
+            show_state: false
+          - type: tile
+            entity: binary_sensor.front_door_motion
+            name: Motion
+            icon: mdi:motion-sensor
+          - type: tile
+            entity: sensor.blink_front_door_wi_fi_signal_strength
+            name: Signal (dBm)
+            icon: mdi:wifi
+
+      # ── Camera: Patio (Blink) ────────────────────────────────────────────────
+      - type: grid
+        title: Patio (Blink)
+        column_span: 1
+        cards:
+          - type: picture-entity
+            entity: camera.patio
+            camera_view: live
+            show_name: true
+            show_state: false
+          - type: tile
+            entity: binary_sensor.patio_motion
+            name: Motion
+            icon: mdi:motion-sensor
+          - type: tile
+            entity: sensor.blink_patio_wi_fi_signal_strength
+            name: Signal (dBm)
+            icon: mdi:wifi
+
+      # ── Camera: Patio New (Reolink) ──────────────────────────────────────────
+      - type: grid
+        title: Patio (Reolink)
+        column_span: 1
+        cards:
+          - type: picture-entity
+            entity: camera.pationew_fluent
+            camera_view: live
+            show_name: true
+            show_state: false
+          - type: tile
+            entity: binary_sensor.pationew_person
+            name: Person
+            icon: mdi:account-alert
+          - type: tile
+            entity: binary_sensor.pationew_vehicle
+            name: Vehicle
+            icon: mdi:car
+          - type: tile
+            entity: light.pationew_floodlight
+            name: Floodlight
+            icon: mdi:floodlight
+
+      # ── Camera: Cat House (Blink) ────────────────────────────────────────────
+      - type: grid
+        title: Cat House
+        column_span: 1
+        cards:
+          - type: picture-entity
+            entity: camera.cat_house
+            camera_view: live
+            show_name: true
+            show_state: false
+          - type: tile
+            entity: binary_sensor.cat_house_motion
+            name: Motion
+            icon: mdi:motion-sensor
+          - type: tile
+            entity: sensor.blink_cat_house_wi_fi_signal_strength
+            name: Signal (dBm)
+            icon: mdi:wifi
+
+      # ── Camera: Bedroom (Reolink PTZ) ────────────────────────────────────────
+      - type: grid
+        title: Bedroom Camera
+        column_span: 1
+        cards:
+          - type: picture-entity
+            entity: camera.bedroom_fluent
+            camera_view: live
+            show_name: true
+            show_state: false
+          - type: tile
+            entity: binary_sensor.bedroom_person
+            name: Person
+            icon: mdi:account-alert
+          - type: tile
+            entity: binary_sensor.bedroom_motion
+            name: Motion
+            icon: mdi:motion-sensor
+          - type: tile
+            entity: switch.bedroom_auto_tracking
+            name: Auto Track
+            icon: mdi:cctv
+
+      # ── Camera: XT-3562 ──────────────────────────────────────────────────────
+      - type: grid
+        title: XT-3562
+        column_span: 1
+        cards:
+          - type: picture-entity
+            entity: camera.xt_3562
+            camera_view: live
+            show_name: true
+            show_state: false
+          - type: tile
+            entity: binary_sensor.xt_3562_motion
+            name: Motion
+            icon: mdi:motion-sensor
+          - type: tile
+            entity: sensor.blink_xt_3562_wi_fi_signal_strength
+            name: Signal (dBm)
+            icon: mdi:wifi
+
+      # ── Camera: XT-9953 ──────────────────────────────────────────────────────
+      - type: grid
+        title: XT-9953
+        column_span: 1
+        cards:
+          - type: picture-entity
+            entity: camera.xt_9953
+            camera_view: live
+            show_name: true
+            show_state: false
+          - type: tile
+            entity: binary_sensor.xt_9953_motion
+            name: Motion
+            icon: mdi:motion-sensor
+          - type: tile
+            entity: sensor.blink_xt_9953_wi_fi_signal_strength
+            name: Signal (dBm)
+            icon: mdi:wifi
+
+      # ── Camera Motion Detection Toggles ──────────────────────────────────────
+      - type: grid
+        title: Motion Detection Toggles
+        column_span: 3
+        cards:
+          - type: tile
+            entity: switch.front_door_camera_motion_detection
+            name: Front Door
+            icon: mdi:camera-enhance
+          - type: tile
+            entity: switch.patio_camera_motion_detection
+            name: Patio (Blink)
+            icon: mdi:camera-enhance
+          - type: tile
+            entity: switch.cat_house_camera_motion_detection
+            name: Cat House
+            icon: mdi:camera-enhance
+          - type: tile
+            entity: switch.xt_3562_camera_motion_detection
+            name: XT-3562
+            icon: mdi:camera-enhance
+          - type: tile
+            entity: switch.xt_9953_camera_motion_detection
+            name: XT-9953
+            icon: mdi:camera-enhance
+          - type: tile
+            entity: switch.pationew_push_notifications
+            name: Patio Reolink Alerts
+            icon: mdi:bell
+          - type: tile
+            entity: switch.bedroom_push_notifications
+            name: Bedroom Reolink Alerts
+            icon: mdi:bell

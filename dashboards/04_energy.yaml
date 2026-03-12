@@ -1,0 +1,180 @@
+title: Energy
+views:
+  - title: Energy
+    path: energy
+    type: sections
+    max_columns: 3
+    sections:
+
+      # ── Solar Summary ────────────────────────────────────────────────────────
+      - type: grid
+        title: Solar Production (Enphase)
+        column_span: 3
+        cards:
+          - type: custom:mushroom-template-card
+            primary: >
+              {% set w = states('sensor.envoy_202207116699_current_power_production') | float(0) %}
+              {% if w > 3 %}Great solar production right now — good time to run laundry or dishwasher
+              {% elif w > 1 %}Moderate solar production
+              {% elif w < 0.1 %}Minimal production — may be night or cloudy
+              {% else %}Low solar production
+              {% endif %}
+            secondary: "{{ states('sensor.envoy_202207116699_current_power_production') | float(0) | round(3) }} kW now · {{ states('sensor.envoy_202207116699_energy_production_today') | float(0) | round(2) }} kWh today"
+            icon: mdi:solar-power-variant
+            icon_color: >
+              {% set w = states('sensor.envoy_202207116699_current_power_production') | float(0) %}
+              {% if w > 3 %}green{% elif w > 1 %}yellow{% else %}grey{% endif %}
+            layout: horizontal
+
+      - type: grid
+        title: Production Overview
+        column_span: 1
+        cards:
+          - type: tile
+            entity: sensor.envoy_202207116699_current_power_production
+            name: Right Now (kW)
+            icon: mdi:lightning-bolt
+            color: yellow
+          - type: tile
+            entity: sensor.envoy_202207116699_energy_production_today
+            name: Today (kWh)
+            icon: mdi:solar-panel
+            color: yellow
+          - type: tile
+            entity: sensor.envoy_202207116699_energy_production_last_seven_days
+            name: Last 7 Days (kWh)
+            icon: mdi:chart-line
+            color: orange
+          - type: tile
+            entity: sensor.envoy_202207116699_lifetime_energy_production
+            name: Lifetime (MWh)
+            icon: mdi:counter
+            color: green
+
+      # ── Inverter Status ──────────────────────────────────────────────────────
+      - type: grid
+        title: Inverters (19 panels)
+        column_span: 2
+        cards:
+          - type: entities
+            title: Inverter Output (W)
+            entities:
+              - entity: sensor.inverter_482209038728
+                name: Inverter 01
+              - entity: sensor.inverter_482209036342
+                name: Inverter 02
+              - entity: sensor.inverter_482209036254
+                name: Inverter 03
+              - entity: sensor.inverter_482209036091
+                name: Inverter 04
+              - entity: sensor.inverter_202149060021
+                name: Inverter 05
+              - entity: sensor.inverter_482209039049
+                name: Inverter 06
+              - entity: sensor.inverter_482209036064
+                name: Inverter 07
+              - entity: sensor.inverter_482209039124
+                name: Inverter 08
+              - entity: sensor.inverter_482209036202
+                name: Inverter 09
+              - entity: sensor.inverter_482209039373
+                name: Inverter 10
+              - entity: sensor.inverter_482209036303
+                name: Inverter 11
+              - entity: sensor.inverter_482209036307
+                name: Inverter 12
+              - entity: sensor.inverter_482209036296
+                name: Inverter 13
+              - entity: sensor.inverter_482209039334
+                name: Inverter 14
+              - entity: sensor.inverter_482209036141
+                name: Inverter 15
+              - entity: sensor.inverter_482209036039
+                name: Inverter 16
+              - entity: sensor.inverter_482209038732
+                name: Inverter 17
+              - entity: sensor.inverter_482209036277
+                name: Inverter 18
+              - entity: sensor.inverter_482209036240
+                name: Inverter 19
+
+      # ── Smart Plug Power ─────────────────────────────────────────────────────
+      - type: grid
+        title: Device Power Draw
+        column_span: 1
+        cards:
+          - type: tile
+            entity: sensor.krissy_pc_power_power
+            name: Krissy PC (W)
+            icon: mdi:desktop-tower
+          - type: tile
+            entity: sensor.krissy_pc_power_energy
+            name: Krissy PC (kWh total)
+            icon: mdi:counter
+          - type: tile
+            entity: sensor.krissy_pc_power_voltage
+            name: Krissy PC Voltage
+            icon: mdi:flash
+          - type: tile
+            entity: sensor.musiccompandaudiostuff_power
+            name: Music Room (W)
+            icon: mdi:music
+          - type: tile
+            entity: sensor.musiccompandaudiostuff_energy
+            name: Music Room (kWh total)
+            icon: mdi:counter
+          - type: tile
+            entity: sensor.christmastree_power
+            name: Christmas Tree (W)
+            icon: mdi:pine-tree
+          - type: tile
+            entity: sensor.christmaslights_power
+            name: Christmas Lights (W)
+            icon: mdi:string-lights
+          - type: tile
+            entity: switch.krissy_pc_power_guarded
+            name: Krissy PC
+            icon: mdi:desktop-tower
+          - type: tile
+            entity: switch.musiccompandaudiostuff
+            name: Music Room
+            icon: mdi:music
+
+      # ── Network ──────────────────────────────────────────────────────────────
+      - type: grid
+        title: Network (ASUS ZenWifi)
+        column_span: 1
+        cards:
+          - type: tile
+            entity: binary_sensor.zenwifi_xt8_7fd0_wan_status
+            name: Internet Status
+            icon: mdi:web
+          - type: tile
+            entity: sensor.zenwifi_xt8_7fd0_download_speed
+            name: Download (Mbps)
+            icon: mdi:download-network
+          - type: tile
+            entity: sensor.zenwifi_xt8_7fd0_upload_speed
+            name: Upload (Mbps)
+            icon: mdi:upload-network
+
+      # ── Printer ──────────────────────────────────────────────────────────────
+      - type: grid
+        title: Printer
+        column_span: 1
+        cards:
+          - type: tile
+            entity: sensor.hp_laserjet_m14_m17
+            name: HP LaserJet Status
+            icon: mdi:printer
+          - type: custom:mushroom-template-card
+            primary: Toner Cartridge
+            secondary: >
+              {% set lvl = states('sensor.hp_laserjet_m14_m17_black_cartridge_hp_cf248a') | int(0) %}
+              {% if lvl == 0 %}⚠️ Empty — needs replacement
+              {% elif lvl < 10 %}Low — replace soon ({{ lvl }}%)
+              {% else %}{{ lvl }}% remaining{% endif %}
+            icon: mdi:printer-alert
+            icon_color: >
+              {% set lvl = states('sensor.hp_laserjet_m14_m17_black_cartridge_hp_cf248a') | int(0) %}
+              {% if lvl == 0 %}red{% elif lvl < 10 %}orange{% else %}green{% endif %}

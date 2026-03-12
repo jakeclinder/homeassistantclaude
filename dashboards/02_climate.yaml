@@ -1,0 +1,179 @@
+title: Climate
+views:
+  - title: Climate
+    path: climate
+    type: sections
+    max_columns: 3
+    sections:
+
+      # ── Recommendation Banner ────────────────────────────────────────────────
+      - type: grid
+        column_span: 3
+        cards:
+          - type: custom:mushroom-template-card
+            primary: >
+              {% set outdoor = states('sensor.average_outdoor_temperature') | float(0) %}
+              {% set indoor = states('sensor.avg_indoor_temp') | float(0) %}
+              {% set rh_out = states('sensor.patiotempsonoff_humidity') | float(0) %}
+              {% if outdoor < indoor and outdoor > 62 and outdoor < 80 and rh_out < 70 %}
+                🌬️ Good time to open windows
+              {% elif outdoor >= 85 %}
+                🌡️ Keep windows closed — {{ outdoor | round(0) }}°F outside
+              {% elif indoor > 76 %}
+                ❄️ AC recommended — {{ indoor | round(1) }}°F inside
+              {% elif indoor < 67 %}
+                🔥 Heat recommended — {{ indoor | round(1) }}°F inside
+              {% else %}
+                ✅ Climate looks comfortable
+              {% endif %}
+            secondary: >
+              {% set outdoor = states('sensor.average_outdoor_temperature') | float(0) %}
+              {% set indoor = states('sensor.avg_indoor_temp') | float(0) %}
+              {{ indoor | round(1) }}°F avg indoors · {{ outdoor | round(1) }}°F avg outdoors
+            icon: mdi:home-thermometer-outline
+            icon_color: >
+              {% set outdoor = states('sensor.average_outdoor_temperature') | float(0) %}
+              {% set indoor = states('sensor.avg_indoor_temp') | float(0) %}
+              {% if outdoor < indoor and outdoor > 62 and outdoor < 80 %}green
+              {% elif outdoor >= 85 %}red
+              {% elif indoor > 76 %}blue
+              {% elif indoor < 67 %}orange
+              {% else %}green{% endif %}
+            layout: horizontal
+            multiline_secondary: false
+
+      # ── Outdoor Temps ────────────────────────────────────────────────────────
+      - type: grid
+        title: Outdoors
+        column_span: 1
+        cards:
+          - type: tile
+            entity: sensor.average_outdoor_temperature
+            name: Avg Outdoor Temp
+            icon: mdi:thermometer-high
+          - type: tile
+            entity: sensor.patiotempsonoff_temperature
+            name: Patio Temp
+            icon: mdi:thermometer
+          - type: tile
+            entity: sensor.patiotempsonoff_humidity
+            name: Patio Humidity
+            icon: mdi:water-percent
+          - type: tile
+            entity: sensor.frontdoortempsonoff_temperature
+            name: Front Door Temp
+            icon: mdi:thermometer
+          - type: tile
+            entity: sensor.frontdoortempsonoff_humidity
+            name: Front Door Humidity
+            icon: mdi:water-percent
+
+      # ── Indoor Temps by Room ─────────────────────────────────────────────────
+      - type: grid
+        title: Indoors by Room
+        column_span: 1
+        cards:
+          - type: tile
+            entity: sensor.avg_indoor_temp
+            name: Average Indoor
+            icon: mdi:home-thermometer
+          - type: tile
+            entity: sensor.nursery_temp_temperature
+            name: Nursery Temp
+            icon: mdi:baby-face-outline
+          - type: tile
+            entity: sensor.nursery_temp_humidity
+            name: Nursery Humidity
+            icon: mdi:water-percent
+          - type: tile
+            entity: sensor.0xf082c0fffe4e024f_temperature
+            name: Sensor A Temp
+            icon: mdi:thermometer
+          - type: tile
+            entity: sensor.0xf082c0fffe4e024f_humidity
+            name: Sensor A Humidity
+            icon: mdi:water-percent
+          - type: tile
+            entity: sensor.0x08ddebfffe1010d3_temperature
+            name: Sensor B Temp
+            icon: mdi:thermometer
+          - type: tile
+            entity: sensor.0x08ddebfffe1010d3_humidity
+            name: Sensor B Humidity
+            icon: mdi:water-percent
+
+      # ── Hourly Forecast ──────────────────────────────────────────────────────
+      - type: grid
+        title: Next 8 Hours
+        column_span: 1
+        cards:
+          - type: tile
+            entity: sensor.temp_1h_from_now
+            name: +1h
+            icon: mdi:clock-time-one-outline
+          - type: tile
+            entity: sensor.temp_2h_from_now
+            name: +2h
+            icon: mdi:clock-time-two-outline
+          - type: tile
+            entity: sensor.temp_3h_from_now
+            name: +3h
+            icon: mdi:clock-time-three-outline
+          - type: tile
+            entity: sensor.temp_4h_from_now
+            name: +4h
+            icon: mdi:clock-time-four-outline
+          - type: tile
+            entity: sensor.temp_5h_from_now
+            name: +5h
+            icon: mdi:clock-time-five-outline
+          - type: tile
+            entity: sensor.temp_6h_from_now
+            name: +6h
+            icon: mdi:clock-time-six-outline
+          - type: tile
+            entity: sensor.temp_7h_from_now
+            name: +7h
+            icon: mdi:clock-time-seven-outline
+          - type: tile
+            entity: sensor.temp_8h_from_now
+            name: +8h
+            icon: mdi:clock-time-eight-outline
+
+      # ── Full Weather Forecast ────────────────────────────────────────────────
+      - type: grid
+        title: Extended Forecast
+        column_span: 2
+        cards:
+          - type: weather-forecast
+            entity: weather.pirateweather
+            forecast_type: daily
+            show_current: true
+
+      # ── Freezer Monitor ──────────────────────────────────────────────────────
+      - type: grid
+        title: Freezers
+        column_span: 1
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Garage Freezer
+            secondary: "{{ states('sensor.garagefreezer_temp_temperature') | float(0) | round(1) }}°F"
+            icon: mdi:fridge-outline
+            icon_color: >
+              {% set t = states('sensor.garagefreezer_temp_temperature') | float(0) %}
+              {% if t > 10 %}red{% elif t > 5 %}orange{% else %}blue{% endif %}
+          - type: custom:mushroom-template-card
+            primary: Main Freezer
+            secondary: "{{ states('sensor.mainfreezer_temp_temperature') | float(0) | round(1) }}°F"
+            icon: mdi:fridge-outline
+            icon_color: >
+              {% set t = states('sensor.mainfreezer_temp_temperature') | float(0) %}
+              {% if t > 10 %}red{% elif t > 5 %}orange{% else %}blue{% endif %}
+          - type: tile
+            entity: sensor.garagefreezer_temp_battery
+            name: Garage Sensor Battery
+            icon: mdi:battery
+          - type: tile
+            entity: sensor.mainfreezer_temp_battery
+            name: Main Sensor Battery
+            icon: mdi:battery

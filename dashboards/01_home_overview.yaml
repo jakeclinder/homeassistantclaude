@@ -1,0 +1,274 @@
+title: Home
+views:
+  - title: Overview
+    path: overview
+    type: sections
+    max_columns: 3
+    sections:
+
+      # ── Status bar (full width) ──────────────────────────────────────────────
+      - type: grid
+        column_span: 3
+        cards:
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: weather
+                entity: weather.pirateweather
+                show_conditions: true
+                show_temperature: true
+              - type: template
+                icon: mdi:shield-home
+                icon_color: >
+                  {% if is_state('alarm_control_panel.blink_marathon', 'disarmed') %}green
+                  {% elif is_state('alarm_control_panel.blink_marathon', 'armed_away') %}red
+                  {% else %}orange{% endif %}
+                content: >
+                  {% set s = states('alarm_control_panel.blink_marathon') %}
+                  {% if s == 'armed_away' %}Away{% elif s == 'disarmed' %}Disarmed{% else %}{{ s }}{% endif %}
+              - type: entity
+                entity: person.jake
+                name: Jake
+              - type: template
+                icon: mdi:solar-power
+                icon_color: yellow
+                content: "{{ states('sensor.envoy_202207116699_current_power_production') | float(0) | round(2) }} kW"
+              - type: template
+                icon: mdi:lock
+                icon_color: >
+                  {% if states('sensor.front_door_battery') | int(100) < 25 %}red
+                  {% else %}green{% endif %}
+                content: >
+                  Lock {{ states('sensor.front_door_battery') }}% / {{ states('sensor.front_door_battery_2') }}%
+
+      # ── Temperatures ────────────────────────────────────────────────────────
+      - type: grid
+        title: Temperatures
+        column_span: 1
+        cards:
+          - type: custom:mushroom-template-card
+            primary: >
+              {% set outdoor = states('sensor.average_outdoor_temperature') | float(0) %}
+              {% set indoor = states('sensor.avg_indoor_temp') | float(0) %}
+              {% if outdoor < indoor and outdoor > 62 and outdoor < 80 %}
+                Open the windows
+              {% elif outdoor >= 80 %}
+                Keep windows closed — hot outside
+              {% elif indoor > 76 %}
+                Consider AC
+              {% elif indoor < 67 %}
+                Consider heat
+              {% else %}
+                Climate is comfortable
+              {% endif %}
+            secondary: >
+              {% set outdoor = states('sensor.average_outdoor_temperature') | float(0) %}
+              {% set indoor = states('sensor.avg_indoor_temp') | float(0) %}
+              {{ indoor | round(1) }}°F inside · {{ outdoor | round(1) }}°F outside
+            icon: >
+              {% set outdoor = states('sensor.average_outdoor_temperature') | float(0) %}
+              {% set indoor = states('sensor.avg_indoor_temp') | float(0) %}
+              {% if outdoor < indoor and outdoor > 62 and outdoor < 80 %}mdi:window-open-variant
+              {% elif outdoor >= 80 %}mdi:weather-sunny-alert
+              {% elif indoor > 76 %}mdi:snowflake
+              {% elif indoor < 67 %}mdi:fire
+              {% else %}mdi:home-thermometer{% endif %}
+            icon_color: >
+              {% set outdoor = states('sensor.average_outdoor_temperature') | float(0) %}
+              {% set indoor = states('sensor.avg_indoor_temp') | float(0) %}
+              {% if outdoor < indoor and outdoor > 62 and outdoor < 80 %}green
+              {% elif outdoor >= 80 %}red
+              {% elif indoor > 76 %}blue
+              {% elif indoor < 67 %}orange
+              {% else %}green{% endif %}
+          - type: tile
+            entity: sensor.avg_indoor_temp
+            name: Avg Indoor
+            icon: mdi:home-thermometer
+          - type: tile
+            entity: sensor.average_outdoor_temperature
+            name: Outdoor (Avg)
+            icon: mdi:thermometer-high
+          - type: tile
+            entity: sensor.patiotempsonoff_temperature
+            name: Patio
+            icon: mdi:thermometer
+          - type: tile
+            entity: sensor.frontdoortempsonoff_temperature
+            name: Front Door
+            icon: mdi:thermometer
+          - type: tile
+            entity: sensor.nursery_temp_temperature
+            name: Nursery
+            icon: mdi:baby-face-outline
+
+      # ── Weather Forecast ────────────────────────────────────────────────────
+      - type: grid
+        title: Forecast
+        column_span: 2
+        cards:
+          - type: weather-forecast
+            entity: weather.pirateweather
+            forecast_type: hourly
+            show_current: true
+
+      # ── Solar Production ─────────────────────────────────────────────────────
+      - type: grid
+        title: Solar
+        column_span: 1
+        cards:
+          - type: tile
+            entity: sensor.envoy_202207116699_current_power_production
+            name: Right Now
+            icon: mdi:solar-power
+            color: yellow
+          - type: tile
+            entity: sensor.envoy_202207116699_energy_production_today
+            name: Today
+            icon: mdi:solar-panel
+            color: yellow
+          - type: tile
+            entity: sensor.envoy_202207116699_energy_production_last_seven_days
+            name: Last 7 Days
+            icon: mdi:chart-line
+            color: orange
+
+      # ── Security & Locks ─────────────────────────────────────────────────────
+      - type: grid
+        title: Security & Access
+        column_span: 1
+        cards:
+          - type: tile
+            entity: lock.front_door
+            name: Front Door Lock
+          - type: tile
+            entity: lock.front_door_2
+            name: Front Door Lock 2
+          - type: tile
+            entity: alarm_control_panel.blink_marathon
+            name: Alarm
+          - type: tile
+            entity: sensor.front_door_battery
+            name: Lock 1 Battery
+            icon: mdi:battery-30
+            color: red
+          - type: tile
+            entity: sensor.front_door_battery_2
+            name: Lock 2 Battery
+            icon: mdi:battery-20
+            color: red
+
+      # ── Quick Controls ───────────────────────────────────────────────────────
+      - type: grid
+        title: Controls
+        column_span: 1
+        cards:
+          - type: tile
+            entity: vacuum.q5_max
+            name: Roborock
+            icon: mdi:robot-vacuum
+          - type: tile
+            entity: switch.patio_light_switch
+            name: Patio Light
+            icon: mdi:outdoor-lamp
+          - type: tile
+            entity: switch.krissy_pc_power_guarded
+            name: Krissy PC
+            icon: mdi:desktop-tower
+          - type: tile
+            entity: switch.musiccompandaudiostuff
+            name: Music Room
+            icon: mdi:music
+
+      # ── Grow Lights ──────────────────────────────────────────────────────────
+      - type: grid
+        title: Grow Lights
+        column_span: 1
+        cards:
+          - type: tile
+            entity: switch.clock_wall_grow_light
+            name: Clock Wall
+            icon: mdi:flower
+          - type: tile
+            entity: switch.living_room_hallway_plant_light
+            name: Hallway
+            icon: mdi:flower
+          - type: tile
+            entity: switch.kitchen_bench_grow_light
+            name: Kitchen
+            icon: mdi:flower
+          - type: tile
+            entity: switch.krissy_bedside_grow_light
+            name: Krissy Bedside
+            icon: mdi:flower
+
+      # ── Cats ─────────────────────────────────────────────────────────────────
+      - type: grid
+        title: Harry & Gwen
+        column_span: 1
+        cards:
+          - type: tile
+            entity: sensor.harry_visits_today
+            name: Harry Visits Today
+            icon: mdi:cat
+          - type: tile
+            entity: sensor.harry_weight
+            name: Harry Weight
+            icon: mdi:weight
+          - type: tile
+            entity: sensor.gwen_visits_today
+            name: Gwen Visits Today
+            icon: mdi:cat
+          - type: tile
+            entity: sensor.gwen_weight
+            name: Gwen Weight
+            icon: mdi:weight
+          - type: gauge
+            entity: sensor.turdeater_waste_drawer
+            name: Waste Drawer
+            min: 0
+            max: 100
+            needle: false
+            severity:
+              green: 0
+              yellow: 60
+              red: 80
+          - type: gauge
+            entity: sensor.turdeater_litter_level
+            name: Litter Level
+            min: 0
+            max: 100
+            needle: false
+            severity:
+              red: 0
+              yellow: 30
+              green: 60
+
+      # ── Travel Times ─────────────────────────────────────────────────────────
+      - type: grid
+        title: Waze Travel Times
+        column_span: 1
+        cards:
+          - type: tile
+            entity: sensor.waze_travel_time
+            name: Home → Krissy Work
+            icon: mdi:map-marker-distance
+          - type: tile
+            entity: sensor.waze_travel_time_2
+            name: Krissy Work → Home
+            icon: mdi:map-marker-distance
+          - type: tile
+            entity: sensor.waze_travel_time_3
+            name: Home → Parents (Santee)
+            icon: mdi:map-marker-distance
+
+      # ── Shopping & Tasks ─────────────────────────────────────────────────────
+      - type: grid
+        title: Lists
+        column_span: 1
+        cards:
+          - type: todo-list
+            entity: todo.shopping_list
+            title: Shopping List
+          - type: todo-list
+            entity: todo.jake_s_list
+            title: Jake's List

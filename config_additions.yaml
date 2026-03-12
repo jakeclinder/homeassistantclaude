@@ -1,0 +1,90 @@
+# ════════════════════════════════════════════════════════════════════════════
+# ADDITIONS TO configuration.yaml
+# ════════════════════════════════════════════════════════════════════════════
+# Add the sections below to your existing configuration.yaml
+
+
+# ── 4th Waze Travel Time (Home → Chris's House) ──────────────────────────────
+# Add this to your existing sensor: section, or create one if needed.
+# Replace the origin/destination addresses with actual ones.
+#
+# sensor:
+#   - platform: waze_travel_time
+#     name: "Home to Chris"
+#     origin: zone.home
+#     destination: "Chris's Address, City, State"    # ← fill in
+#     region: "US"
+#
+# After adding, the entity will be: sensor.home_to_chris
+
+
+# ── Presence Tracking (Krissy & Jake) ───────────────────────────────────────
+# Jake is already tracked via person.jake (Samsung Galaxy).
+# To add Krissy:
+#   1. Install the HA Companion App on Krissy's phone
+#   2. Log in with a separate HA account (or share Jake's — but separate is better)
+#   3. A new device_tracker will appear automatically
+#   4. Go to Settings → People → Add Person → Krissy
+#   5. Link her device tracker to that person
+#
+# For Theo: since he's a baby, just derive presence:
+#   Theo is home = Jake OR Krissy is home
+#   No separate tracking needed.
+
+# ── Person Config (add after adding Krissy's device) ────────────────────────
+# homeassistant:
+#   customize:
+#     person.krissy:
+#       friendly_name: Krissy
+
+# ── Nanit Baby Monitor ───────────────────────────────────────────────────────
+# There is a HACS integration for Nanit: search "Nanit" in HACS → Integrations
+# It can expose:
+#   - camera stream from the Nanit
+#   - sound level sensor
+#   - breathing rate (Nanit Pro only)
+# Once installed, the camera entity will appear as camera.nanit_XXXX
+# Add it to the nursery dashboard's camera section.
+
+
+# ── Freezer Warning Automation ───────────────────────────────────────────────
+# You already have automation.freezer_warning. If you want to improve it,
+# here is a suggested template for automations.yaml:
+#
+# - alias: "Freezer Temperature Warning"
+#   trigger:
+#     - platform: numeric_state
+#       entity_id: sensor.garagefreezer_temp_temperature
+#       above: 10
+#       for: "00:10:00"
+#     - platform: numeric_state
+#       entity_id: sensor.mainfreezer_temp_temperature
+#       above: 10
+#       for: "00:10:00"
+#   action:
+#     - service: notify.mobile_app_YOUR_PHONE   # ← replace with your device
+#       data:
+#         title: "⚠️ Freezer Alert"
+#         message: >
+#           {{ trigger.to_state.name }} is at
+#           {{ trigger.to_state.state | round(1) }}°F — check the door!
+
+
+# ── Lock Battery Low Notification ───────────────────────────────────────────
+# Add to automations.yaml:
+#
+# - alias: "Front Door Lock Battery Low"
+#   trigger:
+#     - platform: numeric_state
+#       entity_id: sensor.front_door_battery
+#       below: 20
+#     - platform: numeric_state
+#       entity_id: sensor.front_door_battery_2
+#       below: 20
+#   action:
+#     - service: notify.mobile_app_YOUR_PHONE
+#       data:
+#         title: "🔋 Lock Battery Low"
+#         message: >
+#           {{ trigger.to_state.name }} is at {{ trigger.to_state.state }}%.
+#           Replace batteries soon!
