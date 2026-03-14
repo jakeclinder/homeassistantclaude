@@ -1,0 +1,50 @@
+/* ════════════════════════════════════════════════════════════════════════
+   FLOORPLAN CSS  —  Catppuccin Mocha + smooth transitions
+   Place this file at /config/www/floorplan.css
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* Smooth state transitions for all SVG elements */
+svg * {
+  transition:
+    fill        0.7s ease,
+    stroke      0.5s ease,
+    stroke-opacity 0.5s ease,
+    filter      0.7s ease,
+    opacity     0.5s ease;
+}
+
+/* Room elements: slightly slower fade for the fill glow */
+#music-room,
+#nursery,
+#living-room,
+#kitchen,
+#master-bedroom,
+#master-bath,
+#hall-bath,
+#hallway,
+#back-patio,
+#entryway,
+#garage {
+  transition: fill 1.0s ease, filter 1.0s ease;
+}
+
+/* Switch dots: faster response feel */
+[id^="dot-"] {
+  transition: fill 0.4s ease, stroke-opacity 0.4s ease, filter 0.4s ease;
+}
+
+/* Temperature badge text */
+[id^="text-"] {
+  transition: none; /* instant text updates look cleaner */
+}
+
+/* Cursor for interactive elements */
+[id^="dot-"] {
+  cursor: pointer;
+}
+
+/* Prevent text selection on labels */
+text {
+  user-select: none;
+  -webkit-user-select: none;
+}

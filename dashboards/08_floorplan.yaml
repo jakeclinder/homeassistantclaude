@@ -1,21 +1,19 @@
 # ════════════════════════════════════════════════════════════════════════════
-# FLOORPLAN DASHBOARD  (v2 — based on Planner5D layout)
+# FLOORPLAN DASHBOARD  —  ha-floorplan edition
 # ════════════════════════════════════════════════════════════════════════════
 #
-# SETUP:
-#   Copy www/floorplan.svg → /config/www/floorplan.svg on your HA instance
-#   (accessible as /local/floorplan.svg)
+# Requires (all via HACS):
+#   • ha-floorplan  (ExperienceLovelace/ha-floorplan)  ← already installed
+#   • card-mod      (optional, only needed for lock/alarm labels)
 #
-# POSITIONING:
-#   SVG is 1200 × 960.  left = (x / 1200) * 100   top = (y / 960) * 100
-#   Adjust any element by changing its top/left percentages.
+# Files on HA instance  (/config/www/):
+#   • floorplan.svg        ← the floor plan drawing
+#   • floorplan.css        ← smooth transition styles
 #
-# UPGRADE → color-synced rooms (like the community link):
-#   1. Install "Floorplan" via HACS → Frontend
-#      https://github.com/ExperienceLovelace/ha-floorplan
-#   2. Every room in floorplan.svg already has an id attribute ready to use
-#      (id="living-room", id="kitchen", id="master-bedroom", etc.)
-#   3. See www/ha-floorplan-config.yaml for a ready-to-use upgrade config
+# POSITIONING / TWEAKS:
+#   Entity dots and temp badges are SVG elements in floorplan.svg.
+#   Move them by editing their cx/cy (circles) or x/y (rects/text) values.
+#   Room fills are driven entirely by the ha-floorplan rules below.
 #
 # ════════════════════════════════════════════════════════════════════════════
 
@@ -23,421 +21,517 @@ title: Floorplan
 views:
   - title: Floorplan
     path: floorplan
-    panel: true   # fills full viewport — great for wall-mounted iPad
+    panel: true
     cards:
-      - type: picture-elements
-        image: /local/floorplan.svg
+      - type: custom:floorplan-card
+        full_height: true
+        config:
+          image: /local/floorplan.svg
+          stylesheet: /local/floorplan.css
+          log_level: error
 
-        elements:
+          rules:
 
-          # ══════════════════════════════════════════════════════════════
-          # TEMPERATURES  — colored chips, no interaction
-          # ══════════════════════════════════════════════════════════════
+            # ══════════════════════════════════════════════════════════
+            # ROOM FILLS  —  color-synced to entity states
+            # Each room SVG element fades between its resting color
+            # and a bright glow when the relevant switch is ON.
+            # ══════════════════════════════════════════════════════════
 
-          # ── Nursery ───────────────────────────────────────────────────
-          - type: state-label
-            entity: sensor.nursery_temp_temperature
-            suffix: "°"
-            style:
-              top: 39%
-              left: 33%
-              background: "rgba(166,227,161,0.15)"
-              color: "#a6e3a1"
-              border: "1px solid rgba(166,227,161,0.45)"
-              padding: "3px 9px"
-              border-radius: "12px"
-              font-size: "14px"
-              font-weight: "700"
-              pointer-events: none
-              transform: translate(-50%,-50%)
-              white-space: nowrap
+            # ── Music Room ───────────────────────────────────────────
+            - name: Music Room fill
+              entities:
+                - entity: switch.musiccompandaudiostuff
+                  element: music-room
+              state_action:
+                action: call-service
+                service: floorplan.style_set
+                service_data:
+                  element: music-room
+                  style: >
+                    fill: ${entity.state === 'on'
+                      ? 'rgba(249,226,175,0.50)'
+                      : 'rgba(249,226,175,0.18)'};
+                    filter: ${entity.state === 'on'
+                      ? 'drop-shadow(0 0 16px rgba(249,226,175,0.65))'
+                      : 'none'};
 
-          # ── Entryway / Front Door ────────────────────────────────────
-          - type: state-label
-            entity: sensor.frontdoortempsonoff_temperature
-            suffix: "°"
-            style:
-              top: 86%
-              left: 45%
-              background: "rgba(250,179,135,0.15)"
-              color: "#fab387"
-              border: "1px solid rgba(250,179,135,0.45)"
-              padding: "3px 9px"
-              border-radius: "12px"
-              font-size: "14px"
-              font-weight: "700"
-              pointer-events: none
-              transform: translate(-50%,-50%)
-              white-space: nowrap
+            # ── Music Room switch dot ─────────────────────────────────
+            - name: Music dot
+              entities:
+                - entity: switch.musiccompandaudiostuff
+                  element: dot-music
+              state_action:
+                action: call-service
+                service: floorplan.style_set
+                service_data:
+                  element: dot-music
+                  style: >
+                    fill: ${entity.state === 'on'
+                      ? 'rgba(249,226,175,0.30)'
+                      : 'rgba(17,17,27,0.90)'};
+                    stroke: #f9e2af;
+                    stroke-opacity: ${entity.state === 'on' ? '1' : '0.35'};
+                    filter: ${entity.state === 'on'
+                      ? 'drop-shadow(0 0 6px rgba(249,226,175,0.9))'
+                      : 'none'};
+              tap_action:
+                action: call-service
+                service: switch.toggle
+                service_data:
+                  entity_id: switch.musiccompandaudiostuff
 
-          # ── Back Patio ───────────────────────────────────────────────
-          - type: state-label
-            entity: sensor.patiotempsonoff_temperature
-            prefix: "Patio "
-            suffix: "°"
-            style:
-              top: 17%
-              left: 57%
-              background: "rgba(166,227,161,0.12)"
-              color: "#a6e3a1"
-              border: "1px solid rgba(166,227,161,0.35)"
-              padding: "3px 9px"
-              border-radius: "12px"
-              font-size: "13px"
-              font-weight: "700"
-              pointer-events: none
-              transform: translate(-50%,-50%)
-              white-space: nowrap
+            # ── Living Room ───────────────────────────────────────────
+            - name: Living Room fill
+              entities:
+                - entity: switch.clock_wall_grow_light
+                  element: living-room
+              state_action:
+                action: call-service
+                service: floorplan.style_set
+                service_data:
+                  element: living-room
+                  style: >
+                    fill: ${entity.state === 'on'
+                      ? 'rgba(166,227,161,0.38)'
+                      : 'rgba(137,180,250,0.15)'};
+                    filter: ${entity.state === 'on'
+                      ? 'drop-shadow(0 0 18px rgba(166,227,161,0.60))'
+                      : 'none'};
 
-          # ── Average Outdoor (front yard) ──────────────────────────────
-          - type: state-label
-            entity: sensor.average_outdoor_temperature
-            prefix: "Outdoor "
-            suffix: "°"
-            style:
-              top: 88%
-              left: 21%
-              background: "rgba(166,227,161,0.10)"
-              color: "#a6e3a1"
-              border: "1px solid rgba(166,227,161,0.30)"
-              padding: "3px 9px"
-              border-radius: "12px"
-              font-size: "12px"
-              font-weight: "700"
-              pointer-events: none
-              transform: translate(-50%,-50%)
-              white-space: nowrap
+            - name: Clock wall dot
+              entities:
+                - entity: switch.clock_wall_grow_light
+                  element: dot-clock-wall
+              state_action:
+                action: call-service
+                service: floorplan.style_set
+                service_data:
+                  element: dot-clock-wall
+                  style: >
+                    fill: ${entity.state === 'on'
+                      ? 'rgba(166,227,161,0.30)'
+                      : 'rgba(17,17,27,0.90)'};
+                    stroke: #a6e3a1;
+                    stroke-opacity: ${entity.state === 'on' ? '1' : '0.35'};
+                    filter: ${entity.state === 'on'
+                      ? 'drop-shadow(0 0 6px rgba(166,227,161,0.9))'
+                      : 'none'};
+              tap_action:
+                action: call-service
+                service: switch.toggle
+                service_data:
+                  entity_id: switch.clock_wall_grow_light
 
-          # ── Garage Freezer ────────────────────────────────────────────
-          - type: state-label
-            entity: sensor.garagefreezer_temp_temperature
-            prefix: "Freezer "
-            suffix: "°"
-            style:
-              top: 88%
-              left: 73%
-              background: "rgba(137,180,250,0.12)"
-              color: "#89b4fa"
-              border: "1px solid rgba(137,180,250,0.35)"
-              padding: "3px 9px"
-              border-radius: "12px"
-              font-size: "12px"
-              font-weight: "700"
-              pointer-events: none
-              transform: translate(-50%,-50%)
-              white-space: nowrap
+            # ── Hallway ───────────────────────────────────────────────
+            - name: Hallway fill
+              entities:
+                - entity: switch.living_room_hallway_plant_light
+                  element: hallway
+              state_action:
+                action: call-service
+                service: floorplan.style_set
+                service_data:
+                  element: hallway
+                  style: >
+                    fill: ${entity.state === 'on'
+                      ? 'rgba(166,227,161,0.32)'
+                      : 'rgba(166,173,200,0.10)'};
 
-          # ── Avg Indoor (hall area — center of home) ───────────────────
-          - type: state-label
-            entity: sensor.avg_indoor_temp
-            prefix: "Avg "
-            suffix: "°"
-            style:
-              top: 56%
-              left: 20%
-              background: "rgba(137,180,250,0.13)"
-              color: "#89b4fa"
-              border: "1px solid rgba(137,180,250,0.35)"
-              padding: "3px 9px"
-              border-radius: "12px"
-              font-size: "12px"
-              font-weight: "700"
-              pointer-events: none
-              transform: translate(-50%,-50%)
-              white-space: nowrap
+            - name: Hallway plant dot
+              entities:
+                - entity: switch.living_room_hallway_plant_light
+                  element: dot-hallway-plant
+              state_action:
+                action: call-service
+                service: floorplan.style_set
+                service_data:
+                  element: dot-hallway-plant
+                  style: >
+                    fill: ${entity.state === 'on'
+                      ? 'rgba(166,227,161,0.30)'
+                      : 'rgba(17,17,27,0.90)'};
+                    stroke-opacity: ${entity.state === 'on' ? '1' : '0.35'};
+                    filter: ${entity.state === 'on'
+                      ? 'drop-shadow(0 0 5px rgba(166,227,161,0.9))'
+                      : 'none'};
+              tap_action:
+                action: call-service
+                service: switch.toggle
+                service_data:
+                  entity_id: switch.living_room_hallway_plant_light
 
-          # ══════════════════════════════════════════════════════════════
-          # LOCKS  — tap for more-info (color shows locked/unlocked)
-          # ══════════════════════════════════════════════════════════════
+            # ── Kitchen ───────────────────────────────────────────────
+            - name: Kitchen fill
+              entities:
+                - entity: switch.kitchen_bench_grow_light
+                  element: kitchen
+              state_action:
+                action: call-service
+                service: floorplan.style_set
+                service_data:
+                  element: kitchen
+                  style: >
+                    fill: ${entity.state === 'on'
+                      ? 'rgba(166,227,161,0.38)'
+                      : 'rgba(250,179,135,0.18)'};
+                    filter: ${entity.state === 'on'
+                      ? 'drop-shadow(0 0 14px rgba(166,227,161,0.55))'
+                      : 'none'};
 
-          - type: state-icon
-            entity: lock.front_door
-            icon: mdi:lock
-            tap_action:
-              action: more-info
-            style:
-              top: 79%
-              left: 43%
-              background: "rgba(17,17,27,0.85)"
-              border-radius: "50%"
-              padding: "7px"
-              cursor: pointer
+            - name: Kitchen grow dot
+              entities:
+                - entity: switch.kitchen_bench_grow_light
+                  element: dot-kitchen-grow
+              state_action:
+                action: call-service
+                service: floorplan.style_set
+                service_data:
+                  element: dot-kitchen-grow
+                  style: >
+                    fill: ${entity.state === 'on'
+                      ? 'rgba(166,227,161,0.30)'
+                      : 'rgba(17,17,27,0.90)'};
+                    stroke-opacity: ${entity.state === 'on' ? '1' : '0.35'};
+                    filter: ${entity.state === 'on'
+                      ? 'drop-shadow(0 0 6px rgba(166,227,161,0.9))'
+                      : 'none'};
+              tap_action:
+                action: call-service
+                service: switch.toggle
+                service_data:
+                  entity_id: switch.kitchen_bench_grow_light
 
-          - type: state-icon
-            entity: lock.front_door_2
-            icon: mdi:lock
-            tap_action:
-              action: more-info
-            style:
-              top: 84%
-              left: 43%
-              background: "rgba(17,17,27,0.85)"
-              border-radius: "50%"
-              padding: "7px"
-              cursor: pointer
+            # ── Master Bedroom ────────────────────────────────────────
+            # Room glows if EITHER grow light OR PC is on
+            - name: Master Bedroom fill
+              entities:
+                - entity: switch.krissy_bedside_grow_light
+                  element: master-bedroom
+                - entity: switch.krissy_pc_power_guarded
+                  element: master-bedroom
+              state_action:
+                action: call-service
+                service: floorplan.style_set
+                service_data:
+                  element: master-bedroom
+                  style: >
+                    ${(entities['switch.krissy_bedside_grow_light'].state === 'on' ||
+                       entities['switch.krissy_pc_power_guarded'].state  === 'on')
+                      ? 'fill: rgba(166,227,161,0.35); filter: drop-shadow(0 0 14px rgba(166,227,161,0.55));'
+                      : 'fill: rgba(137,180,250,0.18); filter: none;'}
 
-          # ══════════════════════════════════════════════════════════════
-          # ALARM
-          # ══════════════════════════════════════════════════════════════
+            - name: Krissy PC dot
+              entities:
+                - entity: switch.krissy_pc_power_guarded
+                  element: dot-krissy-pc
+              state_action:
+                action: call-service
+                service: floorplan.style_set
+                service_data:
+                  element: dot-krissy-pc
+                  style: >
+                    fill: ${entity.state === 'on'
+                      ? 'rgba(137,180,250,0.30)'
+                      : 'rgba(17,17,27,0.90)'};
+                    stroke-opacity: ${entity.state === 'on' ? '1' : '0.35'};
+                    filter: ${entity.state === 'on'
+                      ? 'drop-shadow(0 0 6px rgba(137,180,250,0.9))'
+                      : 'none'};
+              tap_action:
+                action: call-service
+                service: switch.toggle
+                service_data:
+                  entity_id: switch.krissy_pc_power_guarded
 
-          - type: state-icon
-            entity: alarm_control_panel.blink_marathon
-            icon: mdi:shield-home
-            tap_action:
-              action: more-info
-            style:
-              top: 81%
-              left: 49%
-              background: "rgba(17,17,27,0.85)"
-              border-radius: "50%"
-              padding: "7px"
-              cursor: pointer
+            - name: Bedside grow dot
+              entities:
+                - entity: switch.krissy_bedside_grow_light
+                  element: dot-bedside-grow
+              state_action:
+                action: call-service
+                service: floorplan.style_set
+                service_data:
+                  element: dot-bedside-grow
+                  style: >
+                    fill: ${entity.state === 'on'
+                      ? 'rgba(166,227,161,0.30)'
+                      : 'rgba(17,17,27,0.90)'};
+                    stroke-opacity: ${entity.state === 'on' ? '1' : '0.35'};
+                    filter: ${entity.state === 'on'
+                      ? 'drop-shadow(0 0 6px rgba(166,227,161,0.9))'
+                      : 'none'};
+              tap_action:
+                action: call-service
+                service: switch.toggle
+                service_data:
+                  entity_id: switch.krissy_bedside_grow_light
 
-          # Lock + alarm status label
-          - type: custom:mushroom-template-card
-            primary: >
-              {% set l1 = states('lock.front_door') %}
-              {% set l2 = states('lock.front_door_2') %}
-              {% set a  = states('alarm_control_panel.blink_marathon') %}
-              {{ '🔒' if l1=='locked' and l2=='locked' else '🔓 UNLOCKED' }}
-              · {{ 'Armed' if a=='armed_away' else 'Disarmed' }}
-            icon: ""
-            card_mod:
-              style: |
-                ha-card {
-                  background: transparent !important;
-                  box-shadow: none !important;
-                  pointer-events: none;
-                }
-                .primary { font-size: 10px !important; color: #a6adc8 !important; }
-            style:
-              top: 91%
-              left: 45%
-              transform: translate(-50%,-50%)
-              pointer-events: none
+            # ── Back Patio ────────────────────────────────────────────
+            - name: Back Patio fill
+              entities:
+                - entity: switch.patio_light_switch
+                  element: back-patio
+              state_action:
+                action: call-service
+                service: floorplan.style_set
+                service_data:
+                  element: back-patio
+                  style: >
+                    fill: ${entity.state === 'on'
+                      ? 'rgba(249,226,175,0.28)'
+                      : 'rgba(166,227,161,0.10)'};
+                    filter: ${entity.state === 'on'
+                      ? 'drop-shadow(0 0 20px rgba(249,226,175,0.50))'
+                      : 'none'};
 
-          # ══════════════════════════════════════════════════════════════
-          # SWITCHES  — tap to toggle
-          # ══════════════════════════════════════════════════════════════
+            - name: Patio light dot
+              entities:
+                - entity: switch.patio_light_switch
+                  element: dot-patio-light
+              state_action:
+                action: call-service
+                service: floorplan.style_set
+                service_data:
+                  element: dot-patio-light
+                  style: >
+                    fill: ${entity.state === 'on'
+                      ? 'rgba(249,226,175,0.35)'
+                      : 'rgba(17,17,27,0.90)'};
+                    stroke: #f9e2af;
+                    stroke-opacity: ${entity.state === 'on' ? '1' : '0.35'};
+                    filter: ${entity.state === 'on'
+                      ? 'drop-shadow(0 0 8px rgba(249,226,175,1.0))'
+                      : 'none'};
+              tap_action:
+                action: call-service
+                service: switch.toggle
+                service_data:
+                  entity_id: switch.patio_light_switch
 
-          # ── Music Room: audio equipment ──────────────────────────────
-          - type: state-icon
-            entity: switch.musiccompandaudiostuff
-            icon: mdi:music
-            tap_action:
-              action: toggle
-            hold_action:
-              action: more-info
-            style:
-              top: 42%
-              left: 10%
-              background: "rgba(17,17,27,0.85)"
-              border-radius: "50%"
-              padding: "7px"
-              "--paper-item-icon-color": "#f9e2af"
-              "--paper-item-icon-active-color": "#f9e2af"
-              cursor: pointer
+            # ══════════════════════════════════════════════════════════
+            # TEMPERATURE LABELS  —  live readings in SVG text nodes
+            # ══════════════════════════════════════════════════════════
 
-          # ── Living Room: clock wall grow light ───────────────────────
-          - type: state-icon
-            entity: switch.clock_wall_grow_light
-            icon: mdi:flower
-            tap_action:
-              action: toggle
-            hold_action:
-              action: more-info
-            style:
-              top: 42%
-              left: 62%
-              background: "rgba(17,17,27,0.85)"
-              border-radius: "50%"
-              padding: "7px"
-              "--paper-item-icon-color": "#a6e3a1"
-              "--paper-item-icon-active-color": "#a6e3a1"
-              cursor: pointer
+            - name: Nursery temp text
+              entities:
+                - entity: sensor.nursery_temp_temperature
+                  element: text-nursery-temp
+              state_action:
+                action: call-service
+                service: floorplan.text_set
+                service_data:
+                  element: text-nursery-temp
+                  text: "${parseFloat(entity.state).toFixed(1)}°"
 
-          # ── Hallway: plant light ──────────────────────────────────────
-          - type: state-icon
-            entity: switch.living_room_hallway_plant_light
-            icon: mdi:flower-tulip
-            tap_action:
-              action: toggle
-            hold_action:
-              action: more-info
-            style:
-              top: 56%
-              left: 8%
-              background: "rgba(17,17,27,0.85)"
-              border-radius: "50%"
-              padding: "7px"
-              "--paper-item-icon-color": "#a6e3a1"
-              "--paper-item-icon-active-color": "#a6e3a1"
-              cursor: pointer
+            - name: Avg indoor temp text
+              entities:
+                - entity: sensor.avg_indoor_temp
+                  element: text-avg-indoor
+              state_action:
+                action: call-service
+                service: floorplan.text_set
+                service_data:
+                  element: text-avg-indoor
+                  text: "avg ${parseFloat(entity.state).toFixed(1)}°"
 
-          # ── Kitchen: grow light ───────────────────────────────────────
-          - type: state-icon
-            entity: switch.kitchen_bench_grow_light
-            icon: mdi:flower-pollen
-            tap_action:
-              action: toggle
-            hold_action:
-              action: more-info
-            style:
-              top: 72%
-              left: 76%
-              background: "rgba(17,17,27,0.85)"
-              border-radius: "50%"
-              padding: "7px"
-              "--paper-item-icon-color": "#a6e3a1"
-              "--paper-item-icon-active-color": "#a6e3a1"
-              cursor: pointer
+            - name: Patio temp text
+              entities:
+                - entity: sensor.patiotempsonoff_temperature
+                  element: text-patio-temp
+              state_action:
+                action: call-service
+                service: floorplan.text_set
+                service_data:
+                  element: text-patio-temp
+                  text: "patio ${parseFloat(entity.state).toFixed(1)}°"
 
-          # ── Master Bedroom: Krissy's PC ───────────────────────────────
-          - type: state-icon
-            entity: switch.krissy_pc_power_guarded
-            icon: mdi:desktop-tower
-            tap_action:
-              action: toggle
-            hold_action:
-              action: more-info
-            style:
-              top: 68%
-              left: 8%
-              background: "rgba(17,17,27,0.85)"
-              border-radius: "50%"
-              padding: "7px"
-              "--paper-item-icon-color": "#89b4fa"
-              "--paper-item-icon-active-color": "#89b4fa"
-              cursor: pointer
+            - name: Front door temp text
+              entities:
+                - entity: sensor.frontdoortempsonoff_temperature
+                  element: text-entry-temp
+              state_action:
+                action: call-service
+                service: floorplan.text_set
+                service_data:
+                  element: text-entry-temp
+                  text: "door ${parseFloat(entity.state).toFixed(1)}°"
 
-          # ── Master Bedroom: bedside grow light ────────────────────────
-          - type: state-icon
-            entity: switch.krissy_bedside_grow_light
-            icon: mdi:flower-outline
-            tap_action:
-              action: toggle
-            hold_action:
-              action: more-info
-            style:
-              top: 76%
-              left: 15%
-              background: "rgba(17,17,27,0.85)"
-              border-radius: "50%"
-              padding: "7px"
-              "--paper-item-icon-color": "#a6e3a1"
-              "--paper-item-icon-active-color": "#a6e3a1"
-              cursor: pointer
+            - name: Garage freezer temp text
+              entities:
+                - entity: sensor.garagefreezer_temp_temperature
+                  element: text-garage-freezer
+              state_action:
+                action: call-service
+                service: floorplan.text_set
+                service_data:
+                  element: text-garage-freezer
+                  text: "frz ${parseFloat(entity.state).toFixed(1)}°"
 
-          # ── Back Patio: patio light ───────────────────────────────────
-          - type: state-icon
-            entity: switch.patio_light_switch
-            icon: mdi:outdoor-lamp
-            tap_action:
-              action: toggle
-            hold_action:
-              action: more-info
-            style:
-              top: 17%
-              left: 80%
-              background: "rgba(17,17,27,0.85)"
-              border-radius: "50%"
-              padding: "7px"
-              "--paper-item-icon-color": "#f9e2af"
-              "--paper-item-icon-active-color": "#f9e2af"
-              cursor: pointer
+            - name: Kitchen main freezer temp text
+              entities:
+                - entity: sensor.mainfreezer_temp_temperature
+                  element: text-kitchen-freezer
+              state_action:
+                action: call-service
+                service: floorplan.text_set
+                service_data:
+                  element: text-kitchen-freezer
+                  text: "frz ${parseFloat(entity.state).toFixed(1)}°"
 
-          # ══════════════════════════════════════════════════════════════
-          # VACUUM
-          # ══════════════════════════════════════════════════════════════
+            - name: Outdoor avg temp text
+              entities:
+                - entity: sensor.average_outdoor_temperature
+                  element: text-outdoor-avg
+              state_action:
+                action: call-service
+                service: floorplan.text_set
+                service_data:
+                  element: text-outdoor-avg
+                  text: "out ${parseFloat(entity.state).toFixed(1)}°"
 
-          - type: state-icon
-            entity: vacuum.q5_max
-            icon: mdi:robot-vacuum
-            tap_action:
-              action: more-info
-            style:
-              top: 56%
-              left: 14%
-              background: "rgba(17,17,27,0.85)"
-              border-radius: "50%"
-              padding: "7px"
-              cursor: pointer
+            # ── Nursery temperature → room color (cold/comfortable/warm)
+            - name: Nursery temp color
+              entities:
+                - entity: sensor.nursery_temp_temperature
+                  element: nursery
+              state_action:
+                action: call-service
+                service: floorplan.style_set
+                service_data:
+                  element: nursery
+                  style: >
+                    ${(() => {
+                      const t = parseFloat(entity.state);
+                      if (t < 65) return 'fill: rgba(137,180,250,0.40);';
+                      if (t > 75) return 'fill: rgba(250,179,135,0.38);';
+                      return 'fill: rgba(166,227,161,0.30);';
+                    })()}
 
-          # ══════════════════════════════════════════════════════════════
-          # CONDITIONAL GLOWS — visible when switches are ON
-          # These create a subtle "room is active" effect.
-          # For full color-synced room fills, install ha-floorplan (HACS)
-          # ══════════════════════════════════════════════════════════════
+            # ══════════════════════════════════════════════════════════
+            # LOCK STATUS  —  green = locked, red = unlocked
+            # ══════════════════════════════════════════════════════════
 
-          # Music Room glow (music equipment on)
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: switch.musiccompandaudiostuff
-                state: "on"
-            elements:
-              - type: image
-                image: /local/floorplan.svg   # placeholder — replace w/ glow overlay
-                style:
-                  top: 39%
-                  left: 14.5%
-                  width: "22%"
-                  height: "20%"
-                  background: "rgba(249,226,175,0.08)"
-                  border-radius: "6px"
-                  pointer-events: none
-                  filter: "drop-shadow(0 0 12px rgba(249,226,175,0.4))"
+            - name: Lock 1 status
+              entities:
+                - entity: lock.front_door
+                  element: dot-lock-1
+              state_action:
+                action: call-service
+                service: floorplan.style_set
+                service_data:
+                  element: dot-lock-1
+                  style: >
+                    fill: ${entity.state === 'locked'
+                      ? 'rgba(166,227,161,0.35)'
+                      : 'rgba(243,139,168,0.45)'};
+                    stroke: ${entity.state === 'locked' ? '#a6e3a1' : '#f38ba8'};
+                    stroke-opacity: 1;
+                    filter: ${entity.state !== 'locked'
+                      ? 'drop-shadow(0 0 6px rgba(243,139,168,0.8))'
+                      : 'none'};
+              tap_action:
+                action: call-service
+                service: lock.toggle
+                service_data:
+                  entity_id: lock.front_door
 
-          # Living Room glow (clock wall grow light on)
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: switch.clock_wall_grow_light
-                state: "on"
-            elements:
-              - type: state-badge
-                entity: switch.clock_wall_grow_light
-                style:
-                  top: 34%
-                  left: 62%
-                  "--label-badge-background-color": "rgba(166,227,161,0.3)"
-                  "--label-badge-text-color": "#a6e3a1"
-                  "--label-badge-border-color": "rgba(166,227,161,0.6)"
-                  filter: "drop-shadow(0 0 8px rgba(166,227,161,0.6))"
-                  pointer-events: none
+            - name: Lock 2 status
+              entities:
+                - entity: lock.front_door_2
+                  element: dot-lock-2
+              state_action:
+                action: call-service
+                service: floorplan.style_set
+                service_data:
+                  element: dot-lock-2
+                  style: >
+                    fill: ${entity.state === 'locked'
+                      ? 'rgba(166,227,161,0.35)'
+                      : 'rgba(243,139,168,0.45)'};
+                    stroke: ${entity.state === 'locked' ? '#a6e3a1' : '#f38ba8'};
+                    stroke-opacity: 1;
+                    filter: ${entity.state !== 'locked'
+                      ? 'drop-shadow(0 0 6px rgba(243,139,168,0.8))'
+                      : 'none'};
+              tap_action:
+                action: call-service
+                service: lock.toggle
+                service_data:
+                  entity_id: lock.front_door_2
 
-          # Kitchen glow
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: switch.kitchen_bench_grow_light
-                state: "on"
-            elements:
-              - type: state-badge
-                entity: switch.kitchen_bench_grow_light
-                style:
-                  top: 64%
-                  left: 76%
-                  "--label-badge-background-color": "rgba(166,227,161,0.3)"
-                  "--label-badge-text-color": "#a6e3a1"
-                  "--label-badge-border-color": "rgba(166,227,161,0.6)"
-                  filter: "drop-shadow(0 0 8px rgba(166,227,161,0.6))"
-                  pointer-events: none
+            # ══════════════════════════════════════════════════════════
+            # ALARM STATUS  —  green = disarmed, red = armed/alert
+            # ══════════════════════════════════════════════════════════
 
-          # Master Bedroom glow (bedside grow light on)
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: switch.krissy_bedside_grow_light
-                state: "on"
-            elements:
-              - type: state-badge
-                entity: switch.krissy_bedside_grow_light
-                style:
-                  top: 68%
-                  left: 15%
-                  "--label-badge-background-color": "rgba(166,227,161,0.3)"
-                  "--label-badge-text-color": "#a6e3a1"
-                  "--label-badge-border-color": "rgba(166,227,161,0.6)"
-                  filter: "drop-shadow(0 0 8px rgba(166,227,161,0.6))"
-                  pointer-events: none
+            - name: Alarm status
+              entities:
+                - entity: alarm_control_panel.blink_marathon
+                  element: dot-alarm
+              state_action:
+                action: call-service
+                service: floorplan.style_set
+                service_data:
+                  element: dot-alarm
+                  style: >
+                    ${(() => {
+                      const s = entity.state;
+                      if (s === 'disarmed')
+                        return 'fill: rgba(166,227,161,0.30); stroke: #a6e3a1; stroke-opacity: 1; filter: none;';
+                      if (s === 'armed_away')
+                        return 'fill: rgba(243,139,168,0.40); stroke: #f38ba8; stroke-opacity: 1; filter: drop-shadow(0 0 8px rgba(243,139,168,0.8));';
+                      return 'fill: rgba(250,179,135,0.40); stroke: #fab387; stroke-opacity: 1; filter: drop-shadow(0 0 6px rgba(250,179,135,0.7));';
+                    })()}
+
+            # Entryway fill: pulses red if alarm is armed or if door is unlocked
+            - name: Entryway fill
+              entities:
+                - entity: alarm_control_panel.blink_marathon
+                  element: entryway
+                - entity: lock.front_door
+                  element: entryway
+              state_action:
+                action: call-service
+                service: floorplan.style_set
+                service_data:
+                  element: entryway
+                  style: >
+                    ${(() => {
+                      const alarm = entities['alarm_control_panel.blink_marathon'].state;
+                      const lock  = entities['lock.front_door'].state;
+                      if (alarm === 'armed_away')
+                        return 'fill: rgba(243,139,168,0.30); filter: drop-shadow(0 0 10px rgba(243,139,168,0.6));';
+                      if (lock !== 'locked')
+                        return 'fill: rgba(250,179,135,0.30); filter: drop-shadow(0 0 8px rgba(250,179,135,0.5));';
+                      return 'fill: rgba(250,179,135,0.18); filter: none;';
+                    })()}
+
+            # ══════════════════════════════════════════════════════════
+            # VACUUM STATUS  —  color shows cleaning/docked/error
+            # ══════════════════════════════════════════════════════════
+
+            - name: Vacuum status
+              entities:
+                - entity: vacuum.q5_max
+                  element: dot-vacuum
+              state_action:
+                action: call-service
+                service: floorplan.style_set
+                service_data:
+                  element: dot-vacuum
+                  style: >
+                    ${(() => {
+                      const s = entity.state;
+                      if (s === 'cleaning')
+                        return 'fill: rgba(203,166,247,0.35); stroke: #cba6f7; stroke-opacity: 1; filter: drop-shadow(0 0 6px rgba(203,166,247,0.8));';
+                      if (s === 'docked' || s === 'idle')
+                        return 'fill: rgba(17,17,27,0.90); stroke: #cba6f7; stroke-opacity: 0.4; filter: none;';
+                      if (s === 'error')
+                        return 'fill: rgba(243,139,168,0.35); stroke: #f38ba8; stroke-opacity: 1; filter: drop-shadow(0 0 6px rgba(243,139,168,0.7));';
+                      return 'fill: rgba(17,17,27,0.90); stroke: #cba6f7; stroke-opacity: 0.3; filter: none;';
+                    })()}
+              tap_action:
+                action: call-service
+                service: vacuum.start
+                service_data:
+                  entity_id: vacuum.q5_max

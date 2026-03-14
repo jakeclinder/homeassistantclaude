@@ -247,6 +247,166 @@
   </g>
 
   <!-- ════════════════════════════════════════════════════════ -->
+  <!--  ENTITY OVERLAYS                                         -->
+  <!--  ha-floorplan updates text content and circle styles.    -->
+  <!--  IDs prefixed:  text-*  = temperature labels             -->
+  <!--                 dot-*   = switch / status indicators     -->
+  <!-- ════════════════════════════════════════════════════════ -->
+
+  <!-- ── Temperature badges ───────────────────────────────── -->
+  <!-- Each badge: background pill + text node (ha-floorplan   -->
+  <!-- targets the text node id to update the reading)          -->
+
+  <!-- Nursery -->
+  <g class="temp-badge">
+    <rect x="350" y="367" width="90" height="22" rx="11"
+          fill="rgba(166,227,161,0.15)" stroke="rgba(166,227,161,0.45)" stroke-width="1.2"/>
+    <text id="text-nursery-temp" x="395" y="382"
+          text-anchor="middle" font-family="Roboto,sans-serif"
+          font-weight="700" font-size="12" fill="#a6e3a1">--°</text>
+  </g>
+
+  <!-- Average Indoor (hallway / center of home) -->
+  <g class="temp-badge">
+    <rect x="50" y="520" width="95" height="22" rx="11"
+          fill="rgba(137,180,250,0.13)" stroke="rgba(137,180,250,0.40)" stroke-width="1.2"/>
+    <text id="text-avg-indoor" x="97" y="535"
+          text-anchor="middle" font-family="Roboto,sans-serif"
+          font-weight="700" font-size="12" fill="#89b4fa">avg --°</text>
+  </g>
+
+  <!-- Back Patio -->
+  <g class="temp-badge">
+    <rect x="570" y="149" width="100" height="22" rx="11"
+          fill="rgba(166,227,161,0.12)" stroke="rgba(166,227,161,0.38)" stroke-width="1.2"/>
+    <text id="text-patio-temp" x="620" y="164"
+          text-anchor="middle" font-family="Roboto,sans-serif"
+          font-weight="700" font-size="12" fill="#a6e3a1">patio --°</text>
+  </g>
+
+  <!-- Entryway / Front Door -->
+  <g class="temp-badge">
+    <rect x="487" y="804" width="100" height="22" rx="11"
+          fill="rgba(250,179,135,0.13)" stroke="rgba(250,179,135,0.40)" stroke-width="1.2"/>
+    <text id="text-entry-temp" x="537" y="819"
+          text-anchor="middle" font-family="Roboto,sans-serif"
+          font-weight="700" font-size="12" fill="#fab387">door --°</text>
+  </g>
+
+  <!-- Garage Freezer -->
+  <g class="temp-badge">
+    <rect x="700" y="804" width="105" height="22" rx="11"
+          fill="rgba(137,180,250,0.13)" stroke="rgba(137,180,250,0.40)" stroke-width="1.2"/>
+    <text id="text-garage-freezer" x="752" y="819"
+          text-anchor="middle" font-family="Roboto,sans-serif"
+          font-weight="700" font-size="12" fill="#89b4fa">frz --°</text>
+  </g>
+
+  <!-- Kitchen / Main Freezer -->
+  <g class="temp-badge">
+    <rect x="870" y="804" width="105" height="22" rx="11"
+          fill="rgba(137,180,250,0.13)" stroke="rgba(137,180,250,0.40)" stroke-width="1.2"/>
+    <text id="text-kitchen-freezer" x="922" y="819"
+          text-anchor="middle" font-family="Roboto,sans-serif"
+          font-weight="700" font-size="12" fill="#89b4fa">frz --°</text>
+  </g>
+
+  <!-- Outdoor Average (front yard) -->
+  <g class="temp-badge">
+    <rect x="170" y="820" width="105" height="22" rx="11"
+          fill="rgba(166,227,161,0.10)" stroke="rgba(166,227,161,0.32)" stroke-width="1.2"/>
+    <text id="text-outdoor-avg" x="222" y="835"
+          text-anchor="middle" font-family="Roboto,sans-serif"
+          font-weight="700" font-size="12" fill="#a6e3a1">out --°</text>
+  </g>
+
+  <!-- ── Switch indicator dots (ha-floorplan targets these)  ── -->
+  <!-- State: on  → bright fill + glow stroke                    -->
+  <!-- State: off → dark fill + dim stroke                       -->
+  <!-- tap_action on each calls service to toggle                -->
+
+  <!-- Music Room: audio equipment -->
+  <circle id="dot-music" cx="240" cy="435" r="13"
+          fill="rgba(17,17,27,0.9)" stroke="#f9e2af" stroke-width="2" stroke-opacity="0.45"
+          style="cursor:pointer"/>
+  <text x="240" y="440" text-anchor="middle"
+        font-size="14" fill="#f9e2af" fill-opacity="0.7"
+        pointer-events="none">♪</text>
+
+  <!-- Living Room: clock wall grow light -->
+  <circle id="dot-clock-wall" cx="700" cy="360" r="13"
+          fill="rgba(17,17,27,0.9)" stroke="#a6e3a1" stroke-width="2" stroke-opacity="0.45"
+          style="cursor:pointer"/>
+  <text x="700" y="365" text-anchor="middle"
+        font-size="13" fill="#a6e3a1" fill-opacity="0.7"
+        pointer-events="none">✿</text>
+
+  <!-- Hallway: plant light -->
+  <circle id="dot-hallway-plant" cx="80" cy="512" r="11"
+          fill="rgba(17,17,27,0.9)" stroke="#a6e3a1" stroke-width="2" stroke-opacity="0.45"
+          style="cursor:pointer"/>
+  <text x="80" y="517" text-anchor="middle"
+        font-size="11" fill="#a6e3a1" fill-opacity="0.7"
+        pointer-events="none">✿</text>
+
+  <!-- Kitchen: grow light -->
+  <circle id="dot-kitchen-grow" cx="900" cy="655" r="13"
+          fill="rgba(17,17,27,0.9)" stroke="#a6e3a1" stroke-width="2" stroke-opacity="0.45"
+          style="cursor:pointer"/>
+  <text x="900" y="660" text-anchor="middle"
+        font-size="13" fill="#a6e3a1" fill-opacity="0.7"
+        pointer-events="none">✿</text>
+
+  <!-- Master Bedroom: Krissy's PC -->
+  <circle id="dot-krissy-pc" cx="75" cy="650" r="13"
+          fill="rgba(17,17,27,0.9)" stroke="#89b4fa" stroke-width="2" stroke-opacity="0.45"
+          style="cursor:pointer"/>
+  <text x="75" y="655" text-anchor="middle"
+        font-size="11" fill="#89b4fa" fill-opacity="0.7"
+        pointer-events="none">⊡</text>
+
+  <!-- Master Bedroom: Krissy bedside grow light -->
+  <circle id="dot-bedside-grow" cx="220" cy="700" r="13"
+          fill="rgba(17,17,27,0.9)" stroke="#a6e3a1" stroke-width="2" stroke-opacity="0.45"
+          style="cursor:pointer"/>
+  <text x="220" y="705" text-anchor="middle"
+        font-size="13" fill="#a6e3a1" fill-opacity="0.7"
+        pointer-events="none">✿</text>
+
+  <!-- Back Patio: patio light -->
+  <circle id="dot-patio-light" cx="1090" cy="165" r="13"
+          fill="rgba(17,17,27,0.9)" stroke="#f9e2af" stroke-width="2" stroke-opacity="0.45"
+          style="cursor:pointer"/>
+  <text x="1090" y="170" text-anchor="middle"
+        font-size="13" fill="#f9e2af" fill-opacity="0.7"
+        pointer-events="none">☀</text>
+
+  <!-- ── Status indicators (read-only, color = state) ─────── -->
+
+  <!-- Alarm -->
+  <circle id="dot-alarm" cx="565" cy="790" r="10"
+          fill="rgba(17,17,27,0.9)" stroke="#a6adc8" stroke-width="1.5"
+          style="cursor:pointer"/>
+
+  <!-- Lock 1 -->
+  <circle id="dot-lock-1" cx="499" cy="790" r="10"
+          fill="rgba(17,17,27,0.9)" stroke="#a6adc8" stroke-width="1.5"
+          style="cursor:pointer"/>
+
+  <!-- Lock 2 -->
+  <circle id="dot-lock-2" cx="530" cy="790" r="10"
+          fill="rgba(17,17,27,0.9)" stroke="#a6adc8" stroke-width="1.5"
+          style="cursor:pointer"/>
+
+  <!-- Vacuum -->
+  <circle id="dot-vacuum" cx="140" cy="512" r="11"
+          fill="rgba(17,17,27,0.9)" stroke="#cba6f7" stroke-width="1.5"
+          style="cursor:pointer"/>
+  <text x="140" y="517" text-anchor="middle"
+        font-size="11" fill="#cba6f7" fill-opacity="0.7"
+        pointer-events="none">◎</text>
+
+  <!-- ════════════════════════════════════════════════════════ -->
   <!--  COMPASS ROSE                                            -->
   <!-- ════════════════════════════════════════════════════════ -->
   <g transform="translate(1155, 930)">
