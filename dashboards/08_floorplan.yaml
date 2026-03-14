@@ -1,20 +1,21 @@
 # ════════════════════════════════════════════════════════════════════════════
-# FLOORPLAN DASHBOARD
+# FLOORPLAN DASHBOARD  (v2 — based on Planner5D layout)
 # ════════════════════════════════════════════════════════════════════════════
 #
-# Requires: floorplan.svg uploaded to /config/www/floorplan.svg
-#           (accessible at /local/floorplan.svg)
+# SETUP:
+#   Copy www/floorplan.svg → /config/www/floorplan.svg on your HA instance
+#   (accessible as /local/floorplan.svg)
 #
-# POSITIONING NOTE:
-#   All entity overlays use `top` and `left` as % of the image dimensions.
-#   The SVG is 1200×840. To move an element:
-#     left: (x_pixels / 1200) * 100
-#     top:  (y_pixels / 840)  * 100
+# POSITIONING:
+#   SVG is 1200 × 960.  left = (x / 1200) * 100   top = (y / 960) * 100
+#   Adjust any element by changing its top/left percentages.
 #
-# UPGRADE PATH — Color-synced rooms (like ha-floorplan):
-#   Install the "Floorplan" custom card via HACS. Each room in the SVG
-#   already has an `id` attribute (e.g. id="living-room") ready for mapping.
-#   See: https://github.com/ExperienceLovelace/ha-floorplan
+# UPGRADE → color-synced rooms (like the community link):
+#   1. Install "Floorplan" via HACS → Frontend
+#      https://github.com/ExperienceLovelace/ha-floorplan
+#   2. Every room in floorplan.svg already has an id attribute ready to use
+#      (id="living-room", id="kitchen", id="master-bedroom", etc.)
+#   3. See www/ha-floorplan-config.yaml for a ready-to-use upgrade config
 #
 # ════════════════════════════════════════════════════════════════════════════
 
@@ -22,257 +23,131 @@ title: Floorplan
 views:
   - title: Floorplan
     path: floorplan
-    # `panel: true` makes the picture-elements card fill the full viewport —
-    # perfect for a wall-mounted tablet.
-    panel: true
+    panel: true   # fills full viewport — great for wall-mounted iPad
     cards:
       - type: picture-elements
         image: /local/floorplan.svg
 
-        # ─────────────────────────────────────────────────────────────────
-        # SHARED ELEMENT STYLES (reference comments, not real YAML anchors)
-        # Temperature chip:   dark pill, colored text, no pointer events
-        # Switch icon:        dark circle bg, tap to toggle
-        # Lock / alarm icon:  dark circle bg, color = state
-        # ─────────────────────────────────────────────────────────────────
-
         elements:
 
           # ══════════════════════════════════════════════════════════════
-          # TEMPERATURES
+          # TEMPERATURES  — colored chips, no interaction
           # ══════════════════════════════════════════════════════════════
 
-          # ── Nursery ──────────────────────────────────────────────────
+          # ── Nursery ───────────────────────────────────────────────────
           - type: state-label
             entity: sensor.nursery_temp_temperature
             suffix: "°"
             style:
-              top: 13%
-              left: 28.5%
-              background: "rgba(166, 227, 161, 0.15)"
+              top: 39%
+              left: 33%
+              background: "rgba(166,227,161,0.15)"
               color: "#a6e3a1"
-              border: "1px solid rgba(166, 227, 161, 0.4)"
-              padding: "3px 8px"
+              border: "1px solid rgba(166,227,161,0.45)"
+              padding: "3px 9px"
               border-radius: "12px"
-              font-size: "13px"
+              font-size: "14px"
               font-weight: "700"
               pointer-events: none
-              transform: translate(-50%, -50%)
+              transform: translate(-50%,-50%)
               white-space: nowrap
 
-          # ── Front Door / Entryway ─────────────────────────────────────
+          # ── Entryway / Front Door ────────────────────────────────────
           - type: state-label
             entity: sensor.frontdoortempsonoff_temperature
             suffix: "°"
             style:
-              top: 61%
-              left: 44.9%
-              background: "rgba(250, 179, 135, 0.15)"
+              top: 86%
+              left: 45%
+              background: "rgba(250,179,135,0.15)"
               color: "#fab387"
-              border: "1px solid rgba(250, 179, 135, 0.4)"
-              padding: "3px 8px"
-              border-radius: "12px"
-              font-size: "13px"
-              font-weight: "700"
-              pointer-events: none
-              transform: translate(-50%, -50%)
-              white-space: nowrap
-
-          # ── Avg Indoor (Hall — center of home) ────────────────────────
-          - type: state-label
-            entity: sensor.avg_indoor_temp
-            prefix: "Avg "
-            suffix: "°"
-            style:
-              top: 40%
-              left: 32.5%
-              background: "rgba(137, 180, 250, 0.15)"
-              color: "#89b4fa"
-              border: "1px solid rgba(137, 180, 250, 0.35)"
+              border: "1px solid rgba(250,179,135,0.45)"
               padding: "3px 9px"
               border-radius: "12px"
-              font-size: "12px"
+              font-size: "14px"
               font-weight: "700"
               pointer-events: none
-              transform: translate(-50%, -50%)
+              transform: translate(-50%,-50%)
               white-space: nowrap
 
-          # ── Patio / Outdoor ───────────────────────────────────────────
+          # ── Back Patio ───────────────────────────────────────────────
           - type: state-label
             entity: sensor.patiotempsonoff_temperature
             prefix: "Patio "
             suffix: "°"
             style:
-              top: 92%
-              left: 40%
-              background: "rgba(166, 227, 161, 0.12)"
+              top: 17%
+              left: 57%
+              background: "rgba(166,227,161,0.12)"
               color: "#a6e3a1"
-              border: "1px solid rgba(166, 227, 161, 0.3)"
-              padding: "3px 8px"
+              border: "1px solid rgba(166,227,161,0.35)"
+              padding: "3px 9px"
               border-radius: "12px"
-              font-size: "12px"
+              font-size: "13px"
               font-weight: "700"
               pointer-events: none
-              transform: translate(-50%, -50%)
+              transform: translate(-50%,-50%)
               white-space: nowrap
 
+          # ── Average Outdoor (front yard) ──────────────────────────────
           - type: state-label
             entity: sensor.average_outdoor_temperature
             prefix: "Outdoor "
             suffix: "°"
             style:
-              top: 92%
-              left: 62%
-              background: "rgba(166, 227, 161, 0.12)"
+              top: 88%
+              left: 21%
+              background: "rgba(166,227,161,0.10)"
               color: "#a6e3a1"
-              border: "1px solid rgba(166, 227, 161, 0.3)"
-              padding: "3px 8px"
+              border: "1px solid rgba(166,227,161,0.30)"
+              padding: "3px 9px"
               border-radius: "12px"
               font-size: "12px"
               font-weight: "700"
               pointer-events: none
-              transform: translate(-50%, -50%)
+              transform: translate(-50%,-50%)
+              white-space: nowrap
+
+          # ── Garage Freezer ────────────────────────────────────────────
+          - type: state-label
+            entity: sensor.garagefreezer_temp_temperature
+            prefix: "Freezer "
+            suffix: "°"
+            style:
+              top: 88%
+              left: 73%
+              background: "rgba(137,180,250,0.12)"
+              color: "#89b4fa"
+              border: "1px solid rgba(137,180,250,0.35)"
+              padding: "3px 9px"
+              border-radius: "12px"
+              font-size: "12px"
+              font-weight: "700"
+              pointer-events: none
+              transform: translate(-50%,-50%)
+              white-space: nowrap
+
+          # ── Avg Indoor (hall area — center of home) ───────────────────
+          - type: state-label
+            entity: sensor.avg_indoor_temp
+            prefix: "Avg "
+            suffix: "°"
+            style:
+              top: 56%
+              left: 20%
+              background: "rgba(137,180,250,0.13)"
+              color: "#89b4fa"
+              border: "1px solid rgba(137,180,250,0.35)"
+              padding: "3px 9px"
+              border-radius: "12px"
+              font-size: "12px"
+              font-weight: "700"
+              pointer-events: none
+              transform: translate(-50%,-50%)
               white-space: nowrap
 
           # ══════════════════════════════════════════════════════════════
-          # SWITCHES  (tap to toggle)
-          # ══════════════════════════════════════════════════════════════
-
-          # ── Music Room: Music/Audio equipment ────────────────────────
-          - type: state-icon
-            entity: switch.musiccompandaudiostuff
-            icon: mdi:music
-            tap_action:
-              action: toggle
-            hold_action:
-              action: more-info
-            style:
-              top: 38%
-              left: 10.2%
-              background: "rgba(24, 24, 37, 0.80)"
-              border-radius: "50%"
-              padding: "7px"
-              "--paper-item-icon-color": "#f9e2af"
-              "--paper-item-icon-active-color": "#f9e2af"
-              color: "#f9e2af"
-              cursor: pointer
-
-          # ── Living Room: Clock Wall grow light ───────────────────────
-          - type: state-icon
-            entity: switch.clock_wall_grow_light
-            icon: mdi:flower
-            tap_action:
-              action: toggle
-            hold_action:
-              action: more-info
-            style:
-              top: 38%
-              left: 62%
-              background: "rgba(24, 24, 37, 0.80)"
-              border-radius: "50%"
-              padding: "7px"
-              "--paper-item-icon-color": "#a6e3a1"
-              "--paper-item-icon-active-color": "#a6e3a1"
-              color: "#a6e3a1"
-              cursor: pointer
-
-          # ── Hall / Hallway: Plant light ───────────────────────────────
-          - type: state-icon
-            entity: switch.living_room_hallway_plant_light
-            icon: mdi:flower-tulip
-            tap_action:
-              action: toggle
-            hold_action:
-              action: more-info
-            style:
-              top: 62%
-              left: 27.5%
-              background: "rgba(24, 24, 37, 0.80)"
-              border-radius: "50%"
-              padding: "7px"
-              "--paper-item-icon-color": "#a6e3a1"
-              "--paper-item-icon-active-color": "#a6e3a1"
-              color: "#a6e3a1"
-              cursor: pointer
-
-          # ── Kitchen: Grow light ───────────────────────────────────────
-          - type: state-icon
-            entity: switch.kitchen_bench_grow_light
-            icon: mdi:flower-pollen
-            tap_action:
-              action: toggle
-            hold_action:
-              action: more-info
-            style:
-              top: 65%
-              left: 76.6%
-              background: "rgba(24, 24, 37, 0.80)"
-              border-radius: "50%"
-              padding: "7px"
-              "--paper-item-icon-color": "#a6e3a1"
-              "--paper-item-icon-active-color": "#a6e3a1"
-              color: "#a6e3a1"
-              cursor: pointer
-
-          # ── Master Bedroom: Krissy's PC ───────────────────────────────
-          - type: state-icon
-            entity: switch.krissy_pc_power_guarded
-            icon: mdi:desktop-tower
-            tap_action:
-              action: toggle
-            hold_action:
-              action: more-info
-            style:
-              top: 67%
-              left: 6%
-              background: "rgba(24, 24, 37, 0.80)"
-              border-radius: "50%"
-              padding: "7px"
-              "--paper-item-icon-color": "#89b4fa"
-              "--paper-item-icon-active-color": "#89b4fa"
-              color: "#89b4fa"
-              cursor: pointer
-
-          # ── Master Bedroom: Krissy bedside grow light ─────────────────
-          - type: state-icon
-            entity: switch.krissy_bedside_grow_light
-            icon: mdi:flower-outline
-            tap_action:
-              action: toggle
-            hold_action:
-              action: more-info
-            style:
-              top: 82%
-              left: 14.2%
-              background: "rgba(24, 24, 37, 0.80)"
-              border-radius: "50%"
-              padding: "7px"
-              "--paper-item-icon-color": "#a6e3a1"
-              "--paper-item-icon-active-color": "#a6e3a1"
-              color: "#a6e3a1"
-              cursor: pointer
-
-          # ── Outdoor / Patio: Patio light ──────────────────────────────
-          - type: state-icon
-            entity: switch.patio_light_switch
-            icon: mdi:outdoor-lamp
-            tap_action:
-              action: toggle
-            hold_action:
-              action: more-info
-            style:
-              top: 92%
-              left: 83%
-              background: "rgba(24, 24, 37, 0.80)"
-              border-radius: "50%"
-              padding: "7px"
-              "--paper-item-icon-color": "#f9e2af"
-              "--paper-item-icon-active-color": "#f9e2af"
-              color: "#f9e2af"
-              cursor: pointer
-
-          # ══════════════════════════════════════════════════════════════
-          # LOCKS  (color = green locked, red unlocked)
+          # LOCKS  — tap for more-info (color shows locked/unlocked)
           # ══════════════════════════════════════════════════════════════
 
           - type: state-icon
@@ -281,9 +156,9 @@ views:
             tap_action:
               action: more-info
             style:
-              top: 54%
-              left: 36.2%
-              background: "rgba(24, 24, 37, 0.80)"
+              top: 79%
+              left: 43%
+              background: "rgba(17,17,27,0.85)"
               border-radius: "50%"
               padding: "7px"
               cursor: pointer
@@ -294,9 +169,9 @@ views:
             tap_action:
               action: more-info
             style:
-              top: 54%
-              left: 41%
-              background: "rgba(24, 24, 37, 0.80)"
+              top: 84%
+              left: 43%
+              background: "rgba(17,17,27,0.85)"
               border-radius: "50%"
               padding: "7px"
               cursor: pointer
@@ -311,11 +186,164 @@ views:
             tap_action:
               action: more-info
             style:
-              top: 54%
-              left: 53%
-              background: "rgba(24, 24, 37, 0.80)"
+              top: 81%
+              left: 49%
+              background: "rgba(17,17,27,0.85)"
               border-radius: "50%"
               padding: "7px"
+              cursor: pointer
+
+          # Lock + alarm status label
+          - type: custom:mushroom-template-card
+            primary: >
+              {% set l1 = states('lock.front_door') %}
+              {% set l2 = states('lock.front_door_2') %}
+              {% set a  = states('alarm_control_panel.blink_marathon') %}
+              {{ '🔒' if l1=='locked' and l2=='locked' else '🔓 UNLOCKED' }}
+              · {{ 'Armed' if a=='armed_away' else 'Disarmed' }}
+            icon: ""
+            card_mod:
+              style: |
+                ha-card {
+                  background: transparent !important;
+                  box-shadow: none !important;
+                  pointer-events: none;
+                }
+                .primary { font-size: 10px !important; color: #a6adc8 !important; }
+            style:
+              top: 91%
+              left: 45%
+              transform: translate(-50%,-50%)
+              pointer-events: none
+
+          # ══════════════════════════════════════════════════════════════
+          # SWITCHES  — tap to toggle
+          # ══════════════════════════════════════════════════════════════
+
+          # ── Music Room: audio equipment ──────────────────────────────
+          - type: state-icon
+            entity: switch.musiccompandaudiostuff
+            icon: mdi:music
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+            style:
+              top: 42%
+              left: 10%
+              background: "rgba(17,17,27,0.85)"
+              border-radius: "50%"
+              padding: "7px"
+              "--paper-item-icon-color": "#f9e2af"
+              "--paper-item-icon-active-color": "#f9e2af"
+              cursor: pointer
+
+          # ── Living Room: clock wall grow light ───────────────────────
+          - type: state-icon
+            entity: switch.clock_wall_grow_light
+            icon: mdi:flower
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+            style:
+              top: 42%
+              left: 62%
+              background: "rgba(17,17,27,0.85)"
+              border-radius: "50%"
+              padding: "7px"
+              "--paper-item-icon-color": "#a6e3a1"
+              "--paper-item-icon-active-color": "#a6e3a1"
+              cursor: pointer
+
+          # ── Hallway: plant light ──────────────────────────────────────
+          - type: state-icon
+            entity: switch.living_room_hallway_plant_light
+            icon: mdi:flower-tulip
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+            style:
+              top: 56%
+              left: 8%
+              background: "rgba(17,17,27,0.85)"
+              border-radius: "50%"
+              padding: "7px"
+              "--paper-item-icon-color": "#a6e3a1"
+              "--paper-item-icon-active-color": "#a6e3a1"
+              cursor: pointer
+
+          # ── Kitchen: grow light ───────────────────────────────────────
+          - type: state-icon
+            entity: switch.kitchen_bench_grow_light
+            icon: mdi:flower-pollen
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+            style:
+              top: 72%
+              left: 76%
+              background: "rgba(17,17,27,0.85)"
+              border-radius: "50%"
+              padding: "7px"
+              "--paper-item-icon-color": "#a6e3a1"
+              "--paper-item-icon-active-color": "#a6e3a1"
+              cursor: pointer
+
+          # ── Master Bedroom: Krissy's PC ───────────────────────────────
+          - type: state-icon
+            entity: switch.krissy_pc_power_guarded
+            icon: mdi:desktop-tower
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+            style:
+              top: 68%
+              left: 8%
+              background: "rgba(17,17,27,0.85)"
+              border-radius: "50%"
+              padding: "7px"
+              "--paper-item-icon-color": "#89b4fa"
+              "--paper-item-icon-active-color": "#89b4fa"
+              cursor: pointer
+
+          # ── Master Bedroom: bedside grow light ────────────────────────
+          - type: state-icon
+            entity: switch.krissy_bedside_grow_light
+            icon: mdi:flower-outline
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+            style:
+              top: 76%
+              left: 15%
+              background: "rgba(17,17,27,0.85)"
+              border-radius: "50%"
+              padding: "7px"
+              "--paper-item-icon-color": "#a6e3a1"
+              "--paper-item-icon-active-color": "#a6e3a1"
+              cursor: pointer
+
+          # ── Back Patio: patio light ───────────────────────────────────
+          - type: state-icon
+            entity: switch.patio_light_switch
+            icon: mdi:outdoor-lamp
+            tap_action:
+              action: toggle
+            hold_action:
+              action: more-info
+            style:
+              top: 17%
+              left: 80%
+              background: "rgba(17,17,27,0.85)"
+              border-radius: "50%"
+              padding: "7px"
+              "--paper-item-icon-color": "#f9e2af"
+              "--paper-item-icon-active-color": "#f9e2af"
               cursor: pointer
 
           # ══════════════════════════════════════════════════════════════
@@ -328,68 +356,39 @@ views:
             tap_action:
               action: more-info
             style:
-              top: 37%
-              left: 42%
-              background: "rgba(24, 24, 37, 0.80)"
+              top: 56%
+              left: 14%
+              background: "rgba(17,17,27,0.85)"
               border-radius: "50%"
               padding: "7px"
               cursor: pointer
 
           # ══════════════════════════════════════════════════════════════
-          # ICON LABELS (small text under each icon for readability)
+          # CONDITIONAL GLOWS — visible when switches are ON
+          # These create a subtle "room is active" effect.
+          # For full color-synced room fills, install ha-floorplan (HACS)
           # ══════════════════════════════════════════════════════════════
 
-          # Locks label
-          - type: custom:mushroom-template-card
-            primary: >
-              {% set l1 = states('lock.front_door') %}
-              {% set l2 = states('lock.front_door_2') %}
-              {% if l1 == 'locked' and l2 == 'locked' %}Locked{% else %}UNLOCKED{% endif %}
-            icon: ""
-            icon_color: >
-              {% if states('lock.front_door') == 'locked' and states('lock.front_door_2') == 'locked' %}green{% else %}red{% endif %}
-            card_mod:
-              style: |
-                ha-card {
-                  background: transparent !important;
-                  box-shadow: none !important;
-                  pointer-events: none;
-                }
-                .primary { font-size: 10px !important; color: #a6adc8 !important; }
-            style:
-              top: 59%
-              left: 38.5%
-              transform: translate(-50%, -50%)
-              pointer-events: none
+          # Music Room glow (music equipment on)
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: switch.musiccompandaudiostuff
+                state: "on"
+            elements:
+              - type: image
+                image: /local/floorplan.svg   # placeholder — replace w/ glow overlay
+                style:
+                  top: 39%
+                  left: 14.5%
+                  width: "22%"
+                  height: "20%"
+                  background: "rgba(249,226,175,0.08)"
+                  border-radius: "6px"
+                  pointer-events: none
+                  filter: "drop-shadow(0 0 12px rgba(249,226,175,0.4))"
 
-          # Alarm label
-          - type: custom:mushroom-template-card
-            primary: >
-              {% set s = states('alarm_control_panel.blink_marathon') %}
-              {% if s == 'disarmed' %}Disarmed{% elif s == 'armed_away' %}Armed Away{% else %}{{ s | title }}{% endif %}
-            icon: ""
-            icon_color: >
-              {% set s = states('alarm_control_panel.blink_marathon') %}
-              {% if s == 'disarmed' %}green{% elif s == 'armed_away' %}red{% else %}orange{% endif %}
-            card_mod:
-              style: |
-                ha-card {
-                  background: transparent !important;
-                  box-shadow: none !important;
-                  pointer-events: none;
-                }
-                .primary { font-size: 10px !important; color: #a6adc8 !important; }
-            style:
-              top: 59%
-              left: 53%
-              transform: translate(-50%, -50%)
-              pointer-events: none
-
-          # ══════════════════════════════════════════════════════════════
-          # CONDITIONAL: Show "ON" glow badge when grow lights are active
-          # ══════════════════════════════════════════════════════════════
-
-          # Living Room glow when clock wall light is ON
+          # Living Room glow (clock wall grow light on)
           - type: conditional
             conditions:
               - condition: state
@@ -399,15 +398,15 @@ views:
               - type: state-badge
                 entity: switch.clock_wall_grow_light
                 style:
-                  top: 30%
+                  top: 34%
                   left: 62%
-                  "--label-badge-background-color": "rgba(166, 227, 161, 0.25)"
+                  "--label-badge-background-color": "rgba(166,227,161,0.3)"
                   "--label-badge-text-color": "#a6e3a1"
-                  "--label-badge-border-color": "rgba(166, 227, 161, 0.5)"
-                  filter: "drop-shadow(0 0 6px rgba(166, 227, 161, 0.5))"
+                  "--label-badge-border-color": "rgba(166,227,161,0.6)"
+                  filter: "drop-shadow(0 0 8px rgba(166,227,161,0.6))"
                   pointer-events: none
 
-          # Kitchen glow when kitchen grow light is ON
+          # Kitchen glow
           - type: conditional
             conditions:
               - condition: state
@@ -417,15 +416,15 @@ views:
               - type: state-badge
                 entity: switch.kitchen_bench_grow_light
                 style:
-                  top: 57%
-                  left: 76.6%
-                  "--label-badge-background-color": "rgba(166, 227, 161, 0.25)"
+                  top: 64%
+                  left: 76%
+                  "--label-badge-background-color": "rgba(166,227,161,0.3)"
                   "--label-badge-text-color": "#a6e3a1"
-                  "--label-badge-border-color": "rgba(166, 227, 161, 0.5)"
-                  filter: "drop-shadow(0 0 6px rgba(166, 227, 161, 0.5))"
+                  "--label-badge-border-color": "rgba(166,227,161,0.6)"
+                  filter: "drop-shadow(0 0 8px rgba(166,227,161,0.6))"
                   pointer-events: none
 
-          # Master Bedroom glow when bedside grow light is ON
+          # Master Bedroom glow (bedside grow light on)
           - type: conditional
             conditions:
               - condition: state
@@ -435,10 +434,10 @@ views:
               - type: state-badge
                 entity: switch.krissy_bedside_grow_light
                 style:
-                  top: 74%
-                  left: 14.2%
-                  "--label-badge-background-color": "rgba(166, 227, 161, 0.25)"
+                  top: 68%
+                  left: 15%
+                  "--label-badge-background-color": "rgba(166,227,161,0.3)"
                   "--label-badge-text-color": "#a6e3a1"
-                  "--label-badge-border-color": "rgba(166, 227, 161, 0.5)"
-                  filter: "drop-shadow(0 0 6px rgba(166, 227, 161, 0.5))"
+                  "--label-badge-border-color": "rgba(166,227,161,0.6)"
+                  filter: "drop-shadow(0 0 8px rgba(166,227,161,0.6))"
                   pointer-events: none

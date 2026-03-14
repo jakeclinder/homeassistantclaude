@@ -1,176 +1,270 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 840" width="1200" height="840">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 960" width="1200" height="960">
   <defs>
     <style>
-      .room-fill-yellow  { fill: #f9e2af; fill-opacity: 0.20; }
-      .room-fill-green   { fill: #a6e3a1; fill-opacity: 0.20; }
-      .room-fill-blue    { fill: #89b4fa; fill-opacity: 0.18; }
-      .room-fill-peach   { fill: #fab387; fill-opacity: 0.20; }
-      .room-fill-mauve   { fill: #cba6f7; fill-opacity: 0.18; }
-      .room-fill-outdoor { fill: #a6e3a1; fill-opacity: 0.07; }
-      .wall { stroke: #45475a; stroke-width: 2; rx: 3; fill: none; }
-      .room-border { stroke: #585b70; stroke-width: 1.5; rx: 3; }
-      .label-primary   { font-family: 'Roboto', 'Segoe UI', Arial, sans-serif; font-weight: 700; fill: #cdd6f4; }
-      .label-secondary { font-family: 'Roboto', 'Segoe UI', Arial, sans-serif; font-weight: 400; fill: #a6adc8; }
-      .outdoor-border  { stroke: #45475a; stroke-width: 1.5; stroke-dasharray: 10,5; fill: none; }
+      /* ── Catppuccin Mocha palette ─────────────────────────── */
+      .bg         { fill: #11111b; }
+      .wall       { fill: #313244; }
+
+      /* Room fills */
+      .r-music    { fill: #f9e2af; fill-opacity: 0.18; }
+      .r-nursery  { fill: #a6e3a1; fill-opacity: 0.20; }
+      .r-living   { fill: #89b4fa; fill-opacity: 0.15; }
+      .r-kitchen  { fill: #fab387; fill-opacity: 0.18; }
+      .r-master   { fill: #89b4fa; fill-opacity: 0.18; }
+      .r-mbath    { fill: #cba6f7; fill-opacity: 0.16; }
+      .r-hbath    { fill: #cba6f7; fill-opacity: 0.13; }
+      .r-hallway  { fill: #a6adc8; fill-opacity: 0.10; }
+      .r-patio    { fill: #a6e3a1; fill-opacity: 0.10; }
+      .r-yard     { fill: #40a02b; fill-opacity: 0.22; }
+      .r-garage   { fill: #585b70; fill-opacity: 0.25; }
+
+      /* Room outlines */
+      .outline    { stroke: #585b70; stroke-width: 2; fill: none; }
+      .dashed     { stroke: #45475a; stroke-width: 1.5; stroke-dasharray: 8,4; fill: none; }
+
+      /* Labels */
+      .lbl        { font-family: 'Roboto','Segoe UI',Arial,sans-serif; font-weight: 700; fill: #cdd6f4; }
+      .lbl-sm     { font-family: 'Roboto','Segoe UI',Arial,sans-serif; font-weight: 400; fill: #a6adc8; }
+      .lbl-yard   { font-family: 'Roboto','Segoe UI',Arial,sans-serif; font-weight: 600; fill: #a6e3a1; }
+      .lbl-garage { font-family: 'Roboto','Segoe UI',Arial,sans-serif; font-weight: 600; fill: #bac2de; }
     </style>
 
-    <!-- Subtle hatch/texture for outdoor -->
-    <pattern id="hatch" patternUnits="userSpaceOnUse" width="12" height="12" patternTransform="rotate(45)">
-      <line x1="0" y1="0" x2="0" y2="12" stroke="#313244" stroke-width="1"/>
+    <!-- Grass texture for yards -->
+    <pattern id="grass" patternUnits="userSpaceOnUse" width="20" height="20">
+      <rect width="20" height="20" fill="#40a02b" fill-opacity="0.18"/>
+      <line x1="0" y1="10" x2="5" y2="5"  stroke="#40a02b" stroke-opacity="0.25" stroke-width="1"/>
+      <line x1="10" y1="18" x2="14" y2="13" stroke="#40a02b" stroke-opacity="0.2"  stroke-width="1"/>
+      <line x1="16" y1="6"  x2="20" y2="2"  stroke="#40a02b" stroke-opacity="0.2"  stroke-width="1"/>
     </pattern>
 
-    <!-- Warm glow filter (for lights-on state, used by ha-floorplan or future enhancement) -->
-    <filter id="glow-yellow" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="8" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    <!-- Concrete texture for garage -->
+    <pattern id="concrete" patternUnits="userSpaceOnUse" width="40" height="40">
+      <rect width="40" height="40" fill="#313244" fill-opacity="0.6"/>
+      <line x1="0" y1="20" x2="40" y2="20" stroke="#45475a" stroke-width="0.5" stroke-opacity="0.5"/>
+      <line x1="20" y1="0" x2="20" y2="40" stroke="#45475a" stroke-width="0.5" stroke-opacity="0.5"/>
+    </pattern>
+
+    <!-- Tile texture for bathrooms -->
+    <pattern id="tile" patternUnits="userSpaceOnUse" width="24" height="24">
+      <rect width="24" height="24" fill="none"/>
+      <rect x="1" y="1" width="10" height="10" fill="#cba6f7" fill-opacity="0.06" rx="1"/>
+      <rect x="13" y="1" width="10" height="10" fill="#cba6f7" fill-opacity="0.06" rx="1"/>
+      <rect x="1" y="13" width="10" height="10" fill="#cba6f7" fill-opacity="0.06" rx="1"/>
+      <rect x="13" y="13" width="10" height="10" fill="#cba6f7" fill-opacity="0.06" rx="1"/>
+    </pattern>
+
+    <!-- Patio wood-grain overlay -->
+    <pattern id="wood" patternUnits="userSpaceOnUse" width="30" height="8">
+      <rect width="30" height="8" fill="none"/>
+      <line x1="0" y1="4" x2="30" y2="4" stroke="#89b4fa" stroke-opacity="0.07" stroke-width="3"/>
+    </pattern>
+
+    <!-- Glow filter for active states (used with ha-floorplan) -->
+    <filter id="glow-warm" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="10" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
-    <filter id="glow-green" x="-20%" y="-20%" width="140%" height="140%">
-      <feGaussianBlur stdDeviation="8" result="blur"/>
-      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    <filter id="glow-cool" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="10" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow-green" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="12" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
   </defs>
 
-  <!-- ═══════════════════════════════════════════════════ -->
-  <!--  BACKGROUND                                         -->
-  <!-- ═══════════════════════════════════════════════════ -->
-  <rect width="1200" height="840" fill="#1e1e2e"/>
+  <!-- ════════════════════════════════════════════════════════ -->
+  <!--  BACKGROUND                                              -->
+  <!-- ════════════════════════════════════════════════════════ -->
+  <rect width="1200" height="960" class="bg"/>
 
-  <!-- Outer house boundary hint -->
-  <rect x="16" y="16" width="1168" height="808" fill="none" stroke="#313244" stroke-width="1" stroke-dasharray="4,4" rx="4"/>
+  <!-- ════════════════════════════════════════════════════════ -->
+  <!--  OUTDOOR — YARDS                                         -->
+  <!-- ════════════════════════════════════════════════════════ -->
 
-  <!-- ═══════════════════════════════════════════════════ -->
-  <!--  ROOMS                                              -->
-  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- Backyard (top-left, behind bedrooms) -->
+  <rect id="backyard" x="40" y="40" width="440" height="240"
+        fill="url(#grass)" rx="6"/>
+  <rect x="40" y="40" width="440" height="240"
+        class="dashed" rx="6"/>
+  <text x="260" y="165" text-anchor="middle" class="lbl-yard" font-size="14">Backyard</text>
 
-  <!-- ── Music Room / Office (top-left, yellow) ────────── -->
-  <!-- ID: music-room — used for ha-floorplan color sync   -->
-  <rect id="music-room"
-        x="22" y="22" width="205" height="405"
-        class="room-fill-yellow room-border" rx="4"/>
-  <text x="124" y="198" text-anchor="middle" class="label-primary" font-size="14">Music Room</text>
-  <text x="124" y="216" text-anchor="middle" class="label-secondary" font-size="11">/ Office</text>
+  <!-- Front / Side Yard (bottom-left, in front of bedrooms) -->
+  <rect id="front-yard" x="40" y="755" width="440" height="165"
+        fill="url(#grass)" rx="6"/>
+  <rect x="40" y="755" width="440" height="165"
+        class="dashed" rx="6"/>
+  <text x="260" y="843" text-anchor="middle" class="lbl-yard" font-size="13">Front Yard</text>
 
-  <!-- ── Nursery (top-center, green) ───────────────────── -->
-  <!-- ID: nursery -->
-  <rect id="nursery"
-        x="240" y="22" width="215" height="225"
-        class="room-fill-green room-border" rx="4"/>
-  <text x="347" y="140" text-anchor="middle" class="label-primary" font-size="14">Nursery</text>
+  <!-- ════════════════════════════════════════════════════════ -->
+  <!--  BACK PATIO (covered, pergola area)                      -->
+  <!-- ════════════════════════════════════════════════════════ -->
+  <rect id="back-patio" x="490" y="40" width="670" height="240"
+        class="r-patio" rx="6"/>
+  <rect x="490" y="40" width="670" height="240"
+        fill="url(#wood)" rx="6"/>
+  <rect x="490" y="40" width="670" height="240"
+        class="dashed" rx="6"/>
 
-  <!-- ── Hall (center-left, peach) ─────────────────────── -->
-  <!-- ID: hall -->
-  <rect id="hall"
-        x="240" y="260" width="305" height="170"
-        class="room-fill-peach room-border" rx="4"/>
-  <text x="392" y="348" text-anchor="middle" class="label-primary" font-size="14">Hall</text>
+  <!-- Pergola beams (decorative) -->
+  <g opacity="0.25" stroke="#f9e2af" stroke-width="4" stroke-linecap="round">
+    <line x1="550" y1="50" x2="550" y2="270"/>
+    <line x1="620" y1="50" x2="620" y2="270"/>
+    <line x1="690" y1="50" x2="690" y2="270"/>
+    <line x1="760" y1="50" x2="760" y2="270"/>
+    <line x1="830" y1="50" x2="830" y2="270"/>
+    <line x1="900" y1="50" x2="900" y2="270"/>
+    <line x1="970" y1="50" x2="970" y2="270"/>
+    <line x1="1040" y1="50" x2="1040" y2="270"/>
+    <line x1="1110" y1="50" x2="1110" y2="270"/>
+    <line x1="490" y1="90"  x2="1160" y2="90"/>
+    <line x1="490" y1="140" x2="1160" y2="140"/>
+    <line x1="490" y1="190" x2="1160" y2="190"/>
+    <line x1="490" y1="240" x2="1160" y2="240"/>
+  </g>
+  <text x="825" y="160" text-anchor="middle" class="lbl-yard" font-size="16">Back Patio</text>
 
-  <!-- ── Hall Bathroom (center-blue, below hall) ───────── -->
-  <!-- ID: hall-bath -->
-  <rect id="hall-bath"
-        x="240" y="445" width="180" height="125"
-        class="room-fill-blue room-border" rx="4"/>
-  <text x="330" y="508" text-anchor="middle" class="label-primary" font-size="12">Hall Bath</text>
+  <!-- ════════════════════════════════════════════════════════ -->
+  <!--  INTERIOR ROOMS                                          -->
+  <!-- ════════════════════════════════════════════════════════ -->
 
-  <!-- ── Living Room (top-right, large blue) ───────────── -->
-  <!-- ID: living-room -->
-  <rect id="living-room"
-        x="558" y="22" width="624" height="385"
-        class="room-fill-blue room-border" rx="4"/>
-  <text x="870" y="215" text-anchor="middle" class="label-primary" font-size="20">Living Room</text>
+  <!-- ── Music Room / Office ─────────────────────────────── -->
+  <!-- SVG ID: music-room  (ha-floorplan target) -->
+  <rect id="music-room" x="40" y="280" width="270" height="195"
+        class="r-music" rx="4"/>
+  <rect x="40" y="280" width="270" height="195"
+        class="outline" rx="4"/>
+  <text x="175" y="372" text-anchor="middle" class="lbl" font-size="14">Music Room</text>
+  <text x="175" y="390" text-anchor="middle" class="lbl-sm" font-size="11">/ Office</text>
 
-  <!-- ── Entryway (center, peach) ─────────────────────── -->
-  <!-- ID: entryway -->
-  <rect id="entryway"
-        x="435" y="445" width="208" height="205"
-        class="room-fill-peach room-border" rx="4"/>
-  <text x="539" y="550" text-anchor="middle" class="label-primary" font-size="13">Entryway</text>
+  <!-- ── Nursery ─────────────────────────────────────────── -->
+  <!-- SVG ID: nursery -->
+  <rect id="nursery" x="310" y="280" width="170" height="195"
+        class="r-nursery" rx="4"/>
+  <rect x="310" y="280" width="170" height="195"
+        class="outline" rx="4"/>
+  <text x="395" y="377" text-anchor="middle" class="lbl" font-size="14">Nursery</text>
 
-  <!-- ── Kitchen (right, peach) ────────────────────────── -->
-  <!-- ID: kitchen -->
-  <rect id="kitchen"
-        x="658" y="420" width="524" height="240"
-        class="room-fill-peach room-border" rx="4"/>
-  <text x="920" y="545" text-anchor="middle" class="label-primary" font-size="18">Kitchen</text>
+  <!-- ── Hallway ─────────────────────────────────────────── -->
+  <!-- SVG ID: hallway -->
+  <rect id="hallway" x="40" y="475" width="120" height="115"
+        class="r-hallway" rx="3"/>
+  <rect x="40" y="475" width="120" height="115"
+        class="outline" rx="3"/>
+  <text x="100" y="538" text-anchor="middle" class="lbl-sm" font-size="10">Hall</text>
 
-  <!-- ── Master Bedroom (bottom-left, blue) ────────────── -->
-  <!-- ID: master-bedroom -->
-  <rect id="master-bedroom"
-        x="22" y="440" width="203" height="295"
-        class="room-fill-blue room-border" rx="4"/>
-  <text x="123" y="583" text-anchor="middle" class="label-primary" font-size="14">Master</text>
-  <text x="123" y="601" text-anchor="middle" class="label-primary" font-size="14">Bedroom</text>
+  <!-- ── Master Bathroom ─────────────────────────────────── -->
+  <!-- SVG ID: master-bath -->
+  <rect id="master-bath" x="160" y="475" width="150" height="115"
+        fill="url(#tile)" rx="3"/>
+  <rect x="160" y="475" width="150" height="115"
+        class="r-mbath" rx="3"/>
+  <rect x="160" y="475" width="150" height="115"
+        class="outline" rx="3"/>
+  <text x="235" y="528" text-anchor="middle" class="lbl" font-size="11">Master</text>
+  <text x="235" y="543" text-anchor="middle" class="lbl" font-size="11">Bath</text>
 
-  <!-- ── Master Bathroom (bottom-center, mauve) ────────── -->
-  <!-- ID: master-bath -->
-  <rect id="master-bath"
-        x="240" y="490" width="180" height="240"
-        class="room-fill-mauve room-border" rx="4"/>
-  <text x="330" y="614" text-anchor="middle" class="label-primary" font-size="12">Master</text>
-  <text x="330" y="632" text-anchor="middle" class="label-primary" font-size="12">Bath</text>
+  <!-- ── Hall Bathroom ───────────────────────────────────── -->
+  <!-- SVG ID: hall-bath -->
+  <rect id="hall-bath" x="310" y="475" width="125" height="175"
+        fill="url(#tile)" rx="3"/>
+  <rect x="310" y="475" width="125" height="175"
+        class="r-hbath" rx="3"/>
+  <rect x="310" y="475" width="125" height="175"
+        class="outline" rx="3"/>
+  <text x="372" y="553" text-anchor="middle" class="lbl" font-size="11">Hall</text>
+  <text x="372" y="568" text-anchor="middle" class="lbl" font-size="11">Bath</text>
 
-  <!-- ═══════════════════════════════════════════════════ -->
-  <!--  OUTDOOR / PATIO                                    -->
-  <!-- ═══════════════════════════════════════════════════ -->
-  <rect id="patio"
-        x="22" y="750" width="1160" height="74"
-        class="room-fill-outdoor" rx="4"/>
-  <rect x="22" y="750" width="1160" height="74"
-        class="outdoor-border" rx="4"/>
-  <text x="602" y="793" text-anchor="middle" class="label-primary" font-size="13" fill="#a6e3a1">Outdoor / Patio</text>
+  <!-- ── Master Bedroom ──────────────────────────────────── -->
+  <!-- SVG ID: master-bedroom -->
+  <rect id="master-bedroom" x="40" y="590" width="270" height="165"
+        class="r-master" rx="4"/>
+  <rect x="40" y="590" width="270" height="165"
+        class="outline" rx="4"/>
+  <text x="175" y="672" text-anchor="middle" class="lbl" font-size="15">Master</text>
+  <text x="175" y="692" text-anchor="middle" class="lbl" font-size="15">Bedroom</text>
 
-  <!-- ═══════════════════════════════════════════════════ -->
-  <!--  WALL CONNECTORS / DOORWAYS (decorative lines)      -->
-  <!-- ═══════════════════════════════════════════════════ -->
+  <!-- ── Living Room ─────────────────────────────────────── -->
+  <!-- SVG ID: living-room -->
+  <rect id="living-room" x="490" y="280" width="670" height="310"
+        class="r-living" rx="4"/>
+  <rect x="490" y="280" width="670" height="310"
+        class="outline" rx="4"/>
+  <text x="825" y="432" text-anchor="middle" class="lbl" font-size="22">Living Room</text>
 
-  <!-- Doorway gap: Music Room → Hall (right wall of Music Room, center) -->
-  <line x1="227" y1="370" x2="240" y2="370" stroke="#1e1e2e" stroke-width="12"/>
-  <line x1="227" y1="370" x2="240" y2="370" stroke="#45475a" stroke-width="1.5"/>
+  <!-- ── Kitchen ─────────────────────────────────────────── -->
+  <!-- SVG ID: kitchen -->
+  <rect id="kitchen" x="490" y="590" width="670" height="165"
+        class="r-kitchen" rx="4"/>
+  <rect x="490" y="590" width="670" height="165"
+        class="outline" rx="4"/>
+  <text x="825" y="678" text-anchor="middle" class="lbl" font-size="18">Kitchen</text>
 
-  <!-- Doorway gap: Nursery → Hall (bottom of Nursery) -->
-  <line x1="310" y1="247" x2="310" y2="260" stroke="#1e1e2e" stroke-width="12"/>
-  <line x1="310" y1="247" x2="310" y2="260" stroke="#45475a" stroke-width="1.5"/>
+  <!-- ── Entryway (front door leads here, left of garage) ── -->
+  <!-- SVG ID: entryway -->
+  <rect id="entryway" x="480" y="755" width="115" height="165"
+        class="r-kitchen" rx="4"/>
+  <rect x="480" y="755" width="115" height="165"
+        class="outline" rx="4"/>
+  <text x="537" y="832" text-anchor="middle" class="lbl" font-size="12">Entry</text>
+  <text x="537" y="848" text-anchor="middle" class="lbl" font-size="12">way</text>
+  <!-- Front door (bottom wall of entryway) -->
+  <line x1="500" y1="920" x2="560" y2="920" stroke="#89dceb" stroke-width="3.5" stroke-linecap="round" opacity="0.7"/>
 
-  <!-- Doorway gap: Hall → Living Room (right wall of Hall) -->
-  <line x1="545" y1="310" x2="558" y2="310" stroke="#1e1e2e" stroke-width="12"/>
-  <line x1="545" y1="310" x2="558" y2="310" stroke="#45475a" stroke-width="1.5"/>
+  <!-- ── Garage ──────────────────────────────────────────── -->
+  <!-- SVG ID: garage -->
+  <rect id="garage" x="595" y="755" width="565" height="165"
+        fill="url(#concrete)" rx="4"/>
+  <rect x="595" y="755" width="565" height="165"
+        class="r-garage" rx="4"/>
+  <rect x="595" y="755" width="565" height="165"
+        class="outline" rx="4"/>
+  <!-- Garage door indicator -->
+  <rect x="700" y="908" width="350" height="8" fill="#45475a" rx="2"/>
+  <line x1="875" y1="760" x2="875" y2="908" stroke="#45475a" stroke-width="1" stroke-dasharray="5,4"/>
+  <text x="877" y="842" text-anchor="middle" class="lbl-garage" font-size="17">Garage</text>
 
-  <!-- Doorway gap: Hall → Entryway -->
-  <line x1="480" y1="430" x2="480" y2="445" stroke="#1e1e2e" stroke-width="12"/>
-  <line x1="480" y1="430" x2="480" y2="445" stroke="#45475a" stroke-width="1.5"/>
-
-  <!-- Doorway gap: Master Bedroom → Hall Bath -->
-  <line x1="227" y1="560" x2="240" y2="560" stroke="#1e1e2e" stroke-width="12"/>
-  <line x1="227" y1="560" x2="240" y2="560" stroke="#45475a" stroke-width="1.5"/>
-
-  <!-- Doorway gap: Entryway → Kitchen -->
-  <line x1="643" y1="490" x2="658" y2="490" stroke="#1e1e2e" stroke-width="12"/>
-  <line x1="643" y1="490" x2="658" y2="490" stroke="#45475a" stroke-width="1.5"/>
-
-  <!-- ═══════════════════════════════════════════════════ -->
-  <!--  COMPASS ROSE (bottom-right)                        -->
-  <!-- ═══════════════════════════════════════════════════ -->
-  <g transform="translate(1155, 55)">
-    <circle cx="0" cy="0" r="22" fill="#181825" stroke="#45475a" stroke-width="1.5"/>
-    <polygon points="0,-16 4,-6 0,-2 -4,-6" fill="#cdd6f4"/>
-    <polygon points="0,16 4,6 0,2 -4,6" fill="#585b70"/>
-    <polygon points="-16,0 -6,-4 -2,0 -6,4" fill="#585b70"/>
-    <polygon points="16,0 6,-4 2,0 6,4" fill="#585b70"/>
-    <text x="0" y="-20" text-anchor="middle" fill="#cdd6f4" font-family="sans-serif" font-size="9" font-weight="700">N</text>
+  <!-- ════════════════════════════════════════════════════════ -->
+  <!--  DOORWAYS (wall gaps showing passage between rooms)      -->
+  <!-- ════════════════════════════════════════════════════════ -->
+  <!-- Each doorway is a short colored line painted over the wall -->
+  <g stroke="#89dceb" stroke-width="3" stroke-linecap="round" opacity="0.6">
+    <!-- Music Room → Hallway -->
+    <line x1="100" y1="475" x2="160" y2="475"/>
+    <!-- Hallway → Master Bed -->
+    <line x1="60" y1="590" x2="120" y2="590"/>
+    <!-- Nursery → Hall Bath -->
+    <line x1="340" y1="475" x2="400" y2="475"/>
+    <!-- Master Bath → Master Bed -->
+    <line x1="175" y1="590" x2="240" y2="590"/>
+    <!-- Living Room → Kitchen -->
+    <line x1="600" y1="590" x2="700" y2="590"/>
+    <!-- Living Room → Back Patio (sliding door) -->
+    <line x1="650" y1="280" x2="770" y2="280"/>
+    <!-- Backyard → Music Room (back door) -->
+    <line x1="100" y1="280" x2="175" y2="280"/>
   </g>
 
-  <!-- ═══════════════════════════════════════════════════ -->
-  <!--  LEGEND (bottom-left)                               -->
-  <!-- ═══════════════════════════════════════════════════ -->
-  <g transform="translate(28, 762)">
-    <rect x="0" y="2" width="10" height="10" fill="#89b4fa" fill-opacity="0.5" rx="1"/>
-    <text x="14" y="11" class="label-secondary" font-size="9">Living / Bedroom</text>
-    <rect x="80" y="2" width="10" height="10" fill="#fab387" fill-opacity="0.5" rx="1"/>
-    <text x="94" y="11" class="label-secondary" font-size="9">Common Areas</text>
-    <rect x="165" y="2" width="10" height="10" fill="#f9e2af" fill-opacity="0.5" rx="1"/>
-    <text x="179" y="11" class="label-secondary" font-size="9">Office</text>
-    <rect x="210" y="2" width="10" height="10" fill="#a6e3a1" fill-opacity="0.5" rx="1"/>
-    <text x="224" y="11" class="label-secondary" font-size="9">Nursery</text>
-    <rect x="265" y="2" width="10" height="10" fill="#cba6f7" fill-opacity="0.5" rx="1"/>
-    <text x="279" y="11" class="label-secondary" font-size="9">Bath</text>
+  <!-- ════════════════════════════════════════════════════════ -->
+  <!--  COMPASS ROSE                                            -->
+  <!-- ════════════════════════════════════════════════════════ -->
+  <g transform="translate(1155, 930)">
+    <circle cx="0" cy="0" r="22" fill="#181825" stroke="#45475a" stroke-width="1.5"/>
+    <polygon points="0,-16 4,-5 0,0 -4,-5" fill="#cdd6f4"/>
+    <polygon points="0,16 4,5 0,0 -4,5" fill="#585b70"/>
+    <polygon points="-16,0 -5,-4 0,0 -5,4" fill="#585b70"/>
+    <polygon points="16,0 5,-4 0,0 5,4" fill="#585b70"/>
+    <text x="0" y="-21" text-anchor="middle" fill="#cdd6f4" font-family="sans-serif" font-size="9" font-weight="700">N</text>
+  </g>
+
+  <!-- ════════════════════════════════════════════════════════ -->
+  <!--  SCALE BAR                                               -->
+  <!-- ════════════════════════════════════════════════════════ -->
+  <g transform="translate(60, 930)">
+    <line x1="0" y1="0" x2="100" y2="0" stroke="#585b70" stroke-width="2"/>
+    <line x1="0" y1="-5" x2="0" y2="5" stroke="#585b70" stroke-width="2"/>
+    <line x1="100" y1="-5" x2="100" y2="5" stroke="#585b70" stroke-width="2"/>
+    <text x="50" y="-8" text-anchor="middle" class="lbl-sm" font-size="9">~15 ft</text>
   </g>
 </svg>

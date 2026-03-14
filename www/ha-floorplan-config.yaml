@@ -1,0 +1,179 @@
+# ════════════════════════════════════════════════════════════════════════════
+# HA-FLOORPLAN UPGRADE CONFIG
+# ════════════════════════════════════════════════════════════════════════════
+#
+# This gives you the color-synced room effect shown in:
+# https://community.home-assistant.io/t/floorplan-ui-with-color-synced-lights/169417
+#
+# INSTALL:
+#   1. HACS → Frontend → search "Floorplan" → Install
+#      (ExperienceLovelace/ha-floorplan)
+#   2. Restart Home Assistant
+#   3. Replace the `picture-elements` card in 08_floorplan.yaml with
+#      the card definition below
+#   4. Keep all the entity overlays from the existing YAML — just change
+#      the card type and add the `config` block
+#
+# HOW IT WORKS:
+#   Each room SVG element (e.g. id="living-room") maps to an entity.
+#   When the switch is ON → room fills with a warm glow color.
+#   When OFF → room returns to its default dim fill.
+#   Temperature values can also drive color (cold=blue → warm=orange).
+#
+# ════════════════════════════════════════════════════════════════════════════
+
+# ── Drop-in replacement card for 08_floorplan.yaml ──────────────────────────
+# Replace the `type: picture-elements` card with this:
+#
+# type: custom:floorplan-card
+# full_height: true
+# config:
+#   image: /local/floorplan.svg
+#   stylesheet: /local/floorplan.css     # <-- create this file too (see below)
+#   rules:
+#
+#     # ── Music Room: switches.musiccompandaudiostuff ────────────────────
+#     - name: Music Room state
+#       entities:
+#         - entity: switch.musiccompandaudiostuff
+#           element: music-room
+#       state_action:
+#         action: call-service
+#         service: floorplan.style_set
+#         service_data:
+#           element: music-room
+#           style: |
+#             fill: ${entity.state === 'on'
+#               ? 'rgba(249, 226, 175, 0.45)'
+#               : 'rgba(249, 226, 175, 0.18)'};
+#             filter: ${entity.state === 'on'
+#               ? 'drop-shadow(0 0 12px rgba(249,226,175,0.7))'
+#               : 'none'};
+#             transition: fill 0.8s ease, filter 0.8s ease;
+#
+#     # ── Living Room: clock wall grow light ────────────────────────────
+#     - name: Living Room state
+#       entities:
+#         - entity: switch.clock_wall_grow_light
+#           element: living-room
+#       state_action:
+#         action: call-service
+#         service: floorplan.style_set
+#         service_data:
+#           element: living-room
+#           style: |
+#             fill: ${entity.state === 'on'
+#               ? 'rgba(166, 227, 161, 0.40)'
+#               : 'rgba(137, 180, 250, 0.15)'};
+#             filter: ${entity.state === 'on'
+#               ? 'drop-shadow(0 0 14px rgba(166,227,161,0.65))'
+#               : 'none'};
+#             transition: fill 0.8s ease, filter 0.8s ease;
+#
+#     # ── Kitchen: grow light ───────────────────────────────────────────
+#     - name: Kitchen state
+#       entities:
+#         - entity: switch.kitchen_bench_grow_light
+#           element: kitchen
+#       state_action:
+#         action: call-service
+#         service: floorplan.style_set
+#         service_data:
+#           element: kitchen
+#           style: |
+#             fill: ${entity.state === 'on'
+#               ? 'rgba(166, 227, 161, 0.38)'
+#               : 'rgba(250, 179, 135, 0.18)'};
+#             filter: ${entity.state === 'on'
+#               ? 'drop-shadow(0 0 12px rgba(166,227,161,0.6))'
+#               : 'none'};
+#             transition: fill 0.8s ease, filter 0.8s ease;
+#
+#     # ── Master Bedroom: bedside grow light + PC ──────────────────────
+#     - name: Master Bedroom state
+#       entities:
+#         - entity: switch.krissy_bedside_grow_light
+#           element: master-bedroom
+#         - entity: switch.krissy_pc_power_guarded
+#           element: master-bedroom
+#       state_action:
+#         action: call-service
+#         service: floorplan.style_set
+#         service_data:
+#           element: master-bedroom
+#           style: |
+#             ${(entities['switch.krissy_bedside_grow_light'].state === 'on' ||
+#                entities['switch.krissy_pc_power_guarded'].state  === 'on')
+#               ? 'fill: rgba(166,227,161,0.35); filter: drop-shadow(0 0 12px rgba(166,227,161,0.6)); transition: fill 0.8s ease;'
+#               : 'fill: rgba(137,180,250,0.18); filter: none; transition: fill 0.8s ease;'}
+#
+#     # ── Back Patio: patio light ───────────────────────────────────────
+#     - name: Patio state
+#       entities:
+#         - entity: switch.patio_light_switch
+#           element: back-patio
+#       state_action:
+#         action: call-service
+#         service: floorplan.style_set
+#         service_data:
+#           element: back-patio
+#           style: |
+#             fill: ${entity.state === 'on'
+#               ? 'rgba(249, 226, 175, 0.30)'
+#               : 'rgba(166, 227, 161, 0.10)'};
+#             filter: ${entity.state === 'on'
+#               ? 'drop-shadow(0 0 16px rgba(249,226,175,0.55))'
+#               : 'none'};
+#             transition: fill 0.8s ease, filter 0.8s ease;
+#
+#     # ── Hallway: plant light ──────────────────────────────────────────
+#     - name: Hallway state
+#       entities:
+#         - entity: switch.living_room_hallway_plant_light
+#           element: hallway
+#       state_action:
+#         action: call-service
+#         service: floorplan.style_set
+#         service_data:
+#           element: hallway
+#           style: |
+#             fill: ${entity.state === 'on'
+#               ? 'rgba(166, 227, 161, 0.35)'
+#               : 'rgba(166, 173, 200, 0.10)'};
+#             transition: fill 0.8s ease;
+#
+#     # ── Temperature-driven color for Nursery ──────────────────────────
+#     # (cold=blue, comfortable=green, warm=orange)
+#     - name: Nursery temperature color
+#       entities:
+#         - entity: sensor.nursery_temp_temperature
+#           element: nursery
+#       state_action:
+#         action: call-service
+#         service: floorplan.style_set
+#         service_data:
+#           element: nursery
+#           style: |
+#             ${(() => {
+#               const t = parseFloat(entity.state);
+#               if (t < 65) return 'fill: rgba(137,180,250,0.40);';
+#               if (t > 75) return 'fill: rgba(250,179,135,0.40);';
+#               return 'fill: rgba(166,227,161,0.35);';
+#             })()}
+#             transition: fill 1.5s ease;
+
+# ════════════════════════════════════════════════════════════════════════════
+# ALSO CREATE: /config/www/floorplan.css
+# ════════════════════════════════════════════════════════════════════════════
+#
+# Paste this into /config/www/floorplan.css:
+#
+# svg * {
+#   transition: fill 0.8s ease, filter 0.8s ease;
+# }
+# .floorplan-room-active {
+#   opacity: 1;
+# }
+# .floorplan-room-inactive {
+#   opacity: 0.85;
+# }
