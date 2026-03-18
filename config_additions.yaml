@@ -103,6 +103,22 @@
 #     icon: mdi:trash-can
 
 
+# ── Baby Schedule — Log Feed Script ─────────────────────────────────────────
+# Add to scripts.yaml (or via Settings → Scripts → + Add Script → YAML mode):
+#
+# log_feed_now:
+#   alias: Log Feed Now
+#   sequence:
+#     - service: input_datetime.set_datetime
+#       target:
+#         entity_id: input_datetime.last_feed_time
+#       data:
+#         datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+#
+# The Log Feed Now button on the dashboard calls script.log_feed_now.
+# Scripts evaluate Jinja2 in data fields — tap_action data fields do not.
+
+
 # ── Baby Schedule — Midnight Chore Reset Automation ──────────────────────────
 # Add to automations.yaml:
 #

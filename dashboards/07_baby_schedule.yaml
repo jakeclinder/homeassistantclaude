@@ -127,11 +127,7 @@ views:
             icon_color: blue
             tap_action:
               action: call-service
-              service: input_datetime.set_datetime
-              target:
-                entity_id: input_datetime.last_feed_time
-              data:
-                datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+              service: script.log_feed_now
           - type: entities
             title: Edit Last Feed Time
             entities:
@@ -284,67 +280,66 @@ views:
           - type: custom:mushroom-template-card
             layout: horizontal
             primary: >
-              {% set forecast = state_attr('weather.pirateweather', 'forecast') | default([]) %}
               {% set current_temp = state_attr('weather.pirateweather', 'temperature') | float(0) %}
-              {% set waking_start_h = 7 %}
-              {% set waking_end_h = 20 %}
-              {% set in_waking = waking_start_h <= now().hour <= waking_end_h %}
+              {% set condition = states('weather.pirateweather') | lower %}
+              {% set in_waking = 7 <= now().hour <= 20 %}
+              {% set forecast = state_attr('weather.pirateweather', 'forecast') | default([]) %}
               {% set ns = namespace(rain_time='', cool_time='', has_rain=false) %}
               {% for entry in forecast %}
-                {% set entry_dt = as_datetime(entry.datetime) %}
-                {% if entry_dt.date() == now().date() and waking_start_h <= entry_dt.hour <= waking_end_h and entry_dt > now() %}
-                  {% if not ns.has_rain and (entry.precipitation_probability | default(0)) > 40 %}
+                {% set entry_dt = as_local(as_datetime(entry.datetime)) %}
+                {% if entry_dt.date() == now().date() and entry_dt > now() %}
+                  {% set precip = entry.precipitation_probability | default(0) | float(0) %}
+                  {% if not ns.has_rain and precip > 40 %}
                     {% set ns.has_rain = true %}
-                    {% set ns.rain_time = entry_dt.strftime('%-I:%M %p') %}
+                    {% set ns.rain_time = entry_dt.strftime('%-I %p') %}
                   {% endif %}
-                  {% if current_temp >= 80 and ns.cool_time == '' and entry.temperature | float(0) < 80 %}
+                  {% if current_temp >= 80 and ns.cool_time == '' and 7 <= entry_dt.hour <= 20 and entry.temperature | float(0) < 80 %}
                     {% set ns.cool_time = entry_dt.strftime('%-I %p') %}
                   {% endif %}
                 {% endif %}
               {% endfor %}
-              {% if not in_waking %}
-                Waking hours are 7 AM – 8 PM
+              {% if not in_waking %}Outside waking hours (7 AM – 8 PM)
+              {% elif 'rain' in condition or 'drizzle' in condition or 'storm' in condition %}Raining right now — check again later
               {% elif current_temp >= 80 %}
-                {% if ns.cool_time != '' %}Too hot right now — may cool below 80° around {{ ns.cool_time }}
-                {% else %}Too hot for a walk during remaining waking hours{% endif %}
-              {% elif ns.has_rain %}
-                Rain possible around {{ ns.rain_time }} — good window to go now
-              {% else %}
-                It's a nice time for a walk with Theo
-              {% endif %}
+                {%- if ns.cool_time != '' %}Too hot right now — may cool below 80° around {{ ns.cool_time }}
+                {%- else %}Too hot for a walk today{% endif %}
+              {% elif ns.has_rain %}Rain possible around {{ ns.rain_time }} — good window to walk now
+              {% else %}It's a nice time for a walk with Theo{% endif %}
             secondary: >
               {% set current_temp = state_attr('weather.pirateweather', 'temperature') | float(0) %}
               {% set condition = states('weather.pirateweather') %}
               {{ current_temp | round(0) | int }}°F · {{ condition | title }}
             icon: >
               {% set current_temp = state_attr('weather.pirateweather', 'temperature') | float(0) %}
+              {% set condition = states('weather.pirateweather') | lower %}
               {% set forecast = state_attr('weather.pirateweather', 'forecast') | default([]) %}
               {% set ns = namespace(has_rain=false) %}
               {% for entry in forecast %}
-                {% set entry_dt = as_datetime(entry.datetime) %}
+                {% set entry_dt = as_local(as_datetime(entry.datetime)) %}
                 {% if entry_dt.date() == now().date() and entry_dt > now() %}
-                  {% if not ns.has_rain and (entry.precipitation_probability | default(0)) > 40 %}
+                  {% if not ns.has_rain and entry.precipitation_probability | default(0) | float(0) > 40 %}
                     {% set ns.has_rain = true %}
                   {% endif %}
                 {% endif %}
               {% endfor %}
               {% if current_temp >= 80 %}mdi:thermometer-high
-              {% elif ns.has_rain %}mdi:weather-rainy
+              {% elif 'rain' in condition or 'drizzle' in condition or ns.has_rain %}mdi:weather-rainy
               {% else %}mdi:walk{% endif %}
             icon_color: >
               {% set current_temp = state_attr('weather.pirateweather', 'temperature') | float(0) %}
+              {% set condition = states('weather.pirateweather') | lower %}
               {% set forecast = state_attr('weather.pirateweather', 'forecast') | default([]) %}
               {% set ns = namespace(has_rain=false) %}
               {% for entry in forecast %}
-                {% set entry_dt = as_datetime(entry.datetime) %}
+                {% set entry_dt = as_local(as_datetime(entry.datetime)) %}
                 {% if entry_dt.date() == now().date() and entry_dt > now() %}
-                  {% if not ns.has_rain and (entry.precipitation_probability | default(0)) > 40 %}
+                  {% if not ns.has_rain and entry.precipitation_probability | default(0) | float(0) > 40 %}
                     {% set ns.has_rain = true %}
                   {% endif %}
                 {% endif %}
               {% endfor %}
               {% if current_temp >= 80 %}red
-              {% elif ns.has_rain %}blue
+              {% elif 'rain' in condition or 'drizzle' in condition or ns.has_rain %}blue
               {% else %}green{% endif %}
 
       # ════════════════════════════════════════════════════════════════════════
@@ -452,20 +447,22 @@ views:
             badge_color: green
 
           # ── Take out trash (Thursdays only) ───────────────────────────────
-          - type: custom:mushroom-template-card
-            primary: Take Out Trash
-            secondary: Thursday pickup
-            icon: mdi:trash-can
-            icon_color: >
-              {{ 'green' if is_state('input_boolean.chore_trash', 'on') else 'deep-orange' }}
-            tap_action:
-              action: call-service
-              service: input_boolean.toggle
-              target:
-                entity_id: input_boolean.chore_trash
-            badge_icon: >
-              {{ 'mdi:check-circle' if is_state('input_boolean.chore_trash', 'on') else '' }}
-            badge_color: green
-            visibility:
+          - type: conditional
+            conditions:
               - condition: template
                 value_template: "{{ now().weekday() == 3 }}"
+            card:
+              type: custom:mushroom-template-card
+              primary: Take Out Trash
+              secondary: Thursday pickup
+              icon: mdi:trash-can
+              icon_color: >
+                {{ 'green' if is_state('input_boolean.chore_trash', 'on') else 'deep-orange' }}
+              tap_action:
+                action: call-service
+                service: input_boolean.toggle
+                target:
+                  entity_id: input_boolean.chore_trash
+              badge_icon: >
+                {{ 'mdi:check-circle' if is_state('input_boolean.chore_trash', 'on') else '' }}
+              badge_color: green
