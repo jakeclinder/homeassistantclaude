@@ -1,0 +1,471 @@
+title: Baby Schedule
+views:
+  - title: Theo's Schedule
+    path: baby-schedule
+    type: sections
+    max_columns: 3
+    sections:
+
+      # ════════════════════════════════════════════════════════════════════════
+      # HERO: Next Upcoming Event
+      # ════════════════════════════════════════════════════════════════════════
+      - type: grid
+        column_span: 3
+        cards:
+          - type: custom:mushroom-template-card
+            layout: horizontal
+            primary: >
+              {% set last_feed_dt = as_datetime(states('input_datetime.last_feed_time')) %}
+              {% set next_feed_dt = last_feed_dt + timedelta(hours=2, minutes=15) %}
+              {% set feed2_dt = next_feed_dt + timedelta(hours=2, minutes=15) %}
+              {% set bath_dt = today_at('19:15') %}
+              {% set bedtime_feed_dt = bath_dt + timedelta(minutes=25) %}
+              {% set bed_dt = bedtime_feed_dt + timedelta(minutes=30) %}
+              {% set now_ts = as_timestamp(now()) %}
+              {% set events = [
+                (as_timestamp(next_feed_dt), 'Next Feed', false),
+                (as_timestamp(feed2_dt), 'Feed', false),
+                (as_timestamp(bath_dt), 'Bathtime', true),
+                (as_timestamp(bedtime_feed_dt), 'Bedtime Feed', false),
+                (as_timestamp(bed_dt), 'Bedtime', false)
+              ] %}
+              {% set ns = namespace(name='', ts=0, found=false, hard=false) %}
+              {% for ts, name, hard in events %}
+                {% if not ns.found and ts > now_ts %}
+                  {% set ns.name = name %}
+                  {% set ns.ts = ts %}
+                  {% set ns.found = true %}
+                  {% set ns.hard = hard %}
+                {% endif %}
+              {% endfor %}
+              {% if ns.found %}
+                {% set diff = ((ns.ts - now_ts) / 60) | int %}
+                {% if diff < 60 %}
+                  {{ ns.name }} — in {{ diff }}m
+                {% else %}
+                  {{ ns.name }} — in {{ (diff / 60) | int }}h {{ diff % 60 }}m
+                {% endif %}
+              {% else %}
+                Theo is asleep — good night!
+              {% endif %}
+            secondary: >
+              {% set last_feed_dt = as_datetime(states('input_datetime.last_feed_time')) %}
+              {% set next_feed_dt = last_feed_dt + timedelta(hours=2, minutes=15) %}
+              {% set feed2_dt = next_feed_dt + timedelta(hours=2, minutes=15) %}
+              {% set bath_dt = today_at('19:15') %}
+              {% set bedtime_feed_dt = bath_dt + timedelta(minutes=25) %}
+              {% set bed_dt = bedtime_feed_dt + timedelta(minutes=30) %}
+              {% set now_ts = as_timestamp(now()) %}
+              {% set events = [
+                (as_timestamp(next_feed_dt), 'Next Feed', false),
+                (as_timestamp(feed2_dt), 'Feed', false),
+                (as_timestamp(bath_dt), 'Bathtime', true),
+                (as_timestamp(bedtime_feed_dt), 'Bedtime Feed', false),
+                (as_timestamp(bed_dt), 'Bedtime', false)
+              ] %}
+              {% set ns = namespace(ts=0, found=false, hard=false) %}
+              {% for ts, name, hard in events %}
+                {% if not ns.found and ts > now_ts %}
+                  {% set ns.ts = ts %}
+                  {% set ns.found = true %}
+                  {% set ns.hard = hard %}
+                {% endif %}
+              {% endfor %}
+              {% if ns.found %}
+                {% if ns.hard %}Fixed · {{ (ns.ts | timestamp_custom('%-I:%M %p', true)) }}{% else %}Estimated · ~{{ (ns.ts | timestamp_custom('%-I:%M %p', true)) }}{% endif %}
+              {% else %}
+                Night feeds: baby-led · {{ (as_timestamp(last_feed_dt + timedelta(hours=3)) | timestamp_custom('%-I:%M %p', true)) }}–{{ (as_timestamp(last_feed_dt + timedelta(hours=5)) | timestamp_custom('%-I:%M %p', true)) }} window
+              {% endif %}
+            icon: >
+              {% set last_feed_dt = as_datetime(states('input_datetime.last_feed_time')) %}
+              {% set bath_dt = today_at('19:15') %}
+              {% set bed_dt = bath_dt + timedelta(minutes=55) %}
+              {% set now_ts = as_timestamp(now()) %}
+              {% if now_ts > as_timestamp(bed_dt) %}mdi:sleep
+              {% elif now_ts > as_timestamp(bath_dt) %}mdi:shower
+              {% else %}mdi:baby-bottle-outline{% endif %}
+            icon_color: >
+              {% set last_feed_dt = as_datetime(states('input_datetime.last_feed_time')) %}
+              {% set next_feed_dt = last_feed_dt + timedelta(hours=2, minutes=15) %}
+              {% set bath_dt = today_at('19:15') %}
+              {% set bedtime_feed_dt = bath_dt + timedelta(minutes=25) %}
+              {% set bed_dt = bedtime_feed_dt + timedelta(minutes=30) %}
+              {% set now_ts = as_timestamp(now()) %}
+              {% set events = [
+                (as_timestamp(next_feed_dt), false),
+                (as_timestamp(next_feed_dt + timedelta(hours=2, minutes=15)), false),
+                (as_timestamp(bath_dt), true),
+                (as_timestamp(bedtime_feed_dt), false),
+                (as_timestamp(bed_dt), false)
+              ] %}
+              {% set ns = namespace(found=false, hard=false) %}
+              {% for ts, hard in events %}
+                {% if not ns.found and ts > now_ts %}
+                  {% set ns.found = true %}
+                  {% set ns.hard = hard %}
+                {% endif %}
+              {% endfor %}
+              {% if not ns.found %}blue
+              {% elif ns.hard %}green
+              {% else %}amber{% endif %}
+
+      # ════════════════════════════════════════════════════════════════════════
+      # FEED LOGGER
+      # ════════════════════════════════════════════════════════════════════════
+      - type: grid
+        title: Feed Tracker
+        column_span: 3
+        cards:
+          - type: custom:mushroom-template-card
+            primary: Log Feed Now
+            secondary: >
+              {% set last_dt = as_datetime(states('input_datetime.last_feed_time')) %}
+              {% set diff = ((as_timestamp(now()) - as_timestamp(last_dt)) / 60) | int %}
+              Last: {{ last_dt.strftime('%-I:%M %p') }}
+              · {% if diff < 60 %}{{ diff }}m ago{% else %}{{ (diff / 60) | int }}h {{ diff % 60 }}m ago{% endif %}
+            icon: mdi:baby-bottle
+            icon_color: blue
+            tap_action:
+              action: call-service
+              service: input_datetime.set_datetime
+              target:
+                entity_id: input_datetime.last_feed_time
+              data:
+                datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+          - type: entities
+            title: Edit Last Feed Time
+            entities:
+              - entity: input_datetime.last_feed_time
+                name: Last Feed
+
+      # ════════════════════════════════════════════════════════════════════════
+      # TODAY'S SCHEDULE — Timeline
+      # ════════════════════════════════════════════════════════════════════════
+      - type: grid
+        title: Today's Schedule
+        column_span: 3
+        cards:
+
+          # ── Morning Wake ──────────────────────────────────────────────────
+          - type: custom:mushroom-template-card
+            primary: Morning Wake
+            secondary: >
+              {% set wake_dt = today_at('07:00') %}
+              {% if as_timestamp(now()) > as_timestamp(wake_dt) %}
+                ~7:00 AM — passed
+              {% else %}
+                ~7:00 AM
+              {% endif %}
+            icon: mdi:weather-sunset-up
+            icon_color: >
+              {% if as_timestamp(now()) > as_timestamp(today_at('07:00')) %}grey{% else %}amber{% endif %}
+
+          # ── Next Feed (dynamic) ───────────────────────────────────────────
+          - type: custom:mushroom-template-card
+            primary: >
+              {% set last_feed_dt = as_datetime(states('input_datetime.last_feed_time')) %}
+              {% set next_feed_dt = last_feed_dt + timedelta(hours=2, minutes=15) %}
+              {% set bath_dt = today_at('19:15') %}
+              {% if as_timestamp(next_feed_dt) > as_timestamp(bath_dt) %}
+                Bedtime Feed
+              {% else %}
+                Next Feed
+              {% endif %}
+            secondary: >
+              {% set last_feed_dt = as_datetime(states('input_datetime.last_feed_time')) %}
+              {% set next_feed_dt = last_feed_dt + timedelta(hours=2, minutes=15) %}
+              {% set bath_dt = today_at('19:15') %}
+              {% if as_timestamp(next_feed_dt) > as_timestamp(bath_dt) %}
+                ~{{ (as_timestamp(bath_dt + timedelta(minutes=25)) | timestamp_custom('%-I:%M %p', true)) }}
+              {% else %}
+                ~{{ next_feed_dt.strftime('%-I:%M %p') }}
+              {% endif %}
+            icon: mdi:baby-bottle-outline
+            icon_color: >
+              {% set last_feed_dt = as_datetime(states('input_datetime.last_feed_time')) %}
+              {% set next_feed_dt = last_feed_dt + timedelta(hours=2, minutes=15) %}
+              {% if as_timestamp(now()) > as_timestamp(next_feed_dt) %}red
+              {% elif (as_timestamp(next_feed_dt) - as_timestamp(now())) < 1800 %}orange
+              {% else %}amber{% endif %}
+
+          # ── Feed After Next (dynamic) ─────────────────────────────────────
+          - type: custom:mushroom-template-card
+            primary: >
+              {% set last_feed_dt = as_datetime(states('input_datetime.last_feed_time')) %}
+              {% set feed2_dt = last_feed_dt + timedelta(hours=4, minutes=30) %}
+              {% set bath_dt = today_at('19:15') %}
+              {% if as_timestamp(feed2_dt) > as_timestamp(bath_dt) %}
+                Bedtime Feed
+              {% elif as_timestamp(feed2_dt) >= as_timestamp(today_at('16:30')) and as_timestamp(feed2_dt) <= as_timestamp(today_at('18:30')) %}
+                Bottle / Pre-Bath Feed
+              {% else %}
+                Feed
+              {% endif %}
+            secondary: >
+              {% set last_feed_dt = as_datetime(states('input_datetime.last_feed_time')) %}
+              {% set feed2_dt = last_feed_dt + timedelta(hours=4, minutes=30) %}
+              {% set bath_dt = today_at('19:15') %}
+              {% if as_timestamp(feed2_dt) > as_timestamp(bath_dt) %}
+                ~{{ (as_timestamp(bath_dt + timedelta(minutes=25)) | timestamp_custom('%-I:%M %p', true)) }}
+              {% else %}
+                ~{{ feed2_dt.strftime('%-I:%M %p') }}
+              {% endif %}
+            icon: mdi:baby-bottle-outline
+            icon_color: >
+              {% set last_feed_dt = as_datetime(states('input_datetime.last_feed_time')) %}
+              {% set feed2_dt = last_feed_dt + timedelta(hours=4, minutes=30) %}
+              {% if as_timestamp(now()) > as_timestamp(feed2_dt) %}grey{% else %}amber{% endif %}
+
+          # ── Nap Attempt (after bottle feed) ──────────────────────────────
+          - type: custom:mushroom-template-card
+            primary: Nap Attempt
+            secondary: >
+              {% set last_feed_dt = as_datetime(states('input_datetime.last_feed_time')) %}
+              {% set bottle_dt = last_feed_dt + timedelta(hours=4, minutes=30) %}
+              {% set bath_dt = today_at('19:15') %}
+              {% if as_timestamp(bottle_dt) < as_timestamp(bath_dt) %}
+                ~{{ (bottle_dt + timedelta(minutes=15)).strftime('%-I:%M %p') }} (if he'll take one)
+              {% else %}
+                After bathtime routine
+              {% endif %}
+            icon: mdi:sleep
+            icon_color: >
+              {% set last_feed_dt = as_datetime(states('input_datetime.last_feed_time')) %}
+              {% set nap_dt = last_feed_dt + timedelta(hours=4, minutes=45) %}
+              {% if as_timestamp(now()) > as_timestamp(nap_dt) %}grey{% else %}purple{% endif %}
+
+          # ── Bathtime (HARD) ───────────────────────────────────────────────
+          - type: custom:mushroom-template-card
+            primary: Bathtime
+            secondary: >
+              7:15 PM — Fixed
+            icon: mdi:shower
+            icon_color: >
+              {% if as_timestamp(now()) > as_timestamp(today_at('19:15')) %}grey{% else %}green{% endif %}
+            badge_icon: mdi:lock
+            badge_color: >
+              {% if as_timestamp(now()) > as_timestamp(today_at('19:15')) %}grey{% else %}green{% endif %}
+
+          # ── Bedtime Feed (soft) ───────────────────────────────────────────
+          - type: custom:mushroom-template-card
+            primary: Bedtime Feed
+            secondary: >
+              ~{{ (as_timestamp(today_at('19:15')) + 25 * 60) | timestamp_custom('%-I:%M %p', true) }} (20–40 min)
+            icon: mdi:baby-bottle
+            icon_color: >
+              {% if as_timestamp(now()) > as_timestamp(today_at('19:40')) %}grey{% else %}amber{% endif %}
+
+          # ── Bed (soft) ────────────────────────────────────────────────────
+          - type: custom:mushroom-template-card
+            primary: Bed
+            secondary: >
+              ~8:10–8:30 PM (after feed)
+            icon: mdi:moon-waning-crescent
+            icon_color: >
+              {% if as_timestamp(now()) > as_timestamp(today_at('20:30')) %}grey{% else %}blue{% endif %}
+
+          # ── Night Feed Window ─────────────────────────────────────────────
+          - type: custom:mushroom-template-card
+            primary: Night Feeds
+            secondary: >
+              {% set last_feed_dt = as_datetime(states('input_datetime.last_feed_time')) %}
+              {% set night_start = last_feed_dt + timedelta(hours=3) %}
+              {% set night_end = last_feed_dt + timedelta(hours=5) %}
+              Baby-led · window ~{{ night_start.strftime('%-I:%M %p') }}–{{ night_end.strftime('%-I:%M %p') }}
+            icon: mdi:baby-face-outline
+            icon_color: blue
+
+      # ════════════════════════════════════════════════════════════════════════
+      # WALK SUGGESTION
+      # ════════════════════════════════════════════════════════════════════════
+      - type: grid
+        column_span: 3
+        cards:
+          - type: custom:mushroom-template-card
+            layout: horizontal
+            primary: >
+              {% set forecast = state_attr('weather.pirateweather', 'forecast') | default([]) %}
+              {% set current_temp = state_attr('weather.pirateweather', 'temperature') | float(0) %}
+              {% set waking_start_h = 7 %}
+              {% set waking_end_h = 20 %}
+              {% set in_waking = waking_start_h <= now().hour <= waking_end_h %}
+              {% set ns = namespace(rain_time='', cool_time='', has_rain=false) %}
+              {% for entry in forecast %}
+                {% set entry_dt = as_datetime(entry.datetime) %}
+                {% if entry_dt.date() == now().date() and waking_start_h <= entry_dt.hour <= waking_end_h and entry_dt > now() %}
+                  {% if not ns.has_rain and (entry.precipitation_probability | default(0)) > 40 %}
+                    {% set ns.has_rain = true %}
+                    {% set ns.rain_time = entry_dt.strftime('%-I:%M %p') %}
+                  {% endif %}
+                  {% if current_temp >= 80 and ns.cool_time == '' and entry.temperature | float(0) < 80 %}
+                    {% set ns.cool_time = entry_dt.strftime('%-I %p') %}
+                  {% endif %}
+                {% endif %}
+              {% endfor %}
+              {% if not in_waking %}
+                Waking hours are 7 AM – 8 PM
+              {% elif current_temp >= 80 %}
+                {% if ns.cool_time != '' %}Too hot right now — may cool below 80° around {{ ns.cool_time }}
+                {% else %}Too hot for a walk during remaining waking hours{% endif %}
+              {% elif ns.has_rain %}
+                Rain possible around {{ ns.rain_time }} — good window to go now
+              {% else %}
+                It's a nice time for a walk with Theo
+              {% endif %}
+            secondary: >
+              {% set current_temp = state_attr('weather.pirateweather', 'temperature') | float(0) %}
+              {% set condition = states('weather.pirateweather') %}
+              {{ current_temp | round(0) | int }}°F · {{ condition | title }}
+            icon: >
+              {% set current_temp = state_attr('weather.pirateweather', 'temperature') | float(0) %}
+              {% set forecast = state_attr('weather.pirateweather', 'forecast') | default([]) %}
+              {% set ns = namespace(has_rain=false) %}
+              {% for entry in forecast %}
+                {% set entry_dt = as_datetime(entry.datetime) %}
+                {% if entry_dt.date() == now().date() and entry_dt > now() %}
+                  {% if not ns.has_rain and (entry.precipitation_probability | default(0)) > 40 %}
+                    {% set ns.has_rain = true %}
+                  {% endif %}
+                {% endif %}
+              {% endfor %}
+              {% if current_temp >= 80 %}mdi:thermometer-high
+              {% elif ns.has_rain %}mdi:weather-rainy
+              {% else %}mdi:walk{% endif %}
+            icon_color: >
+              {% set current_temp = state_attr('weather.pirateweather', 'temperature') | float(0) %}
+              {% set forecast = state_attr('weather.pirateweather', 'forecast') | default([]) %}
+              {% set ns = namespace(has_rain=false) %}
+              {% for entry in forecast %}
+                {% set entry_dt = as_datetime(entry.datetime) %}
+                {% if entry_dt.date() == now().date() and entry_dt > now() %}
+                  {% if not ns.has_rain and (entry.precipitation_probability | default(0)) > 40 %}
+                    {% set ns.has_rain = true %}
+                  {% endif %}
+                {% endif %}
+              {% endfor %}
+              {% if current_temp >= 80 %}red
+              {% elif ns.has_rain %}blue
+              {% else %}green{% endif %}
+
+      # ════════════════════════════════════════════════════════════════════════
+      # EVENING ROUTINE — Chore Checklist
+      # ════════════════════════════════════════════════════════════════════════
+      - type: grid
+        title: Evening Routine
+        column_span: 3
+        cards:
+
+          # ── Cat wet trays ─────────────────────────────────────────────────
+          - type: custom:mushroom-template-card
+            primary: Cat Wet Trays
+            secondary: Pick up outside trays
+            icon: mdi:food-variant
+            icon_color: >
+              {{ 'green' if is_state('input_boolean.chore_cat_wet_trays', 'on') else 'orange' }}
+            tap_action:
+              action: call-service
+              service: input_boolean.toggle
+              target:
+                entity_id: input_boolean.chore_cat_wet_trays
+            badge_icon: >
+              {{ 'mdi:check-circle' if is_state('input_boolean.chore_cat_wet_trays', 'on') else '' }}
+            badge_color: green
+
+          # ── Cat dry food ──────────────────────────────────────────────────
+          - type: custom:mushroom-template-card
+            primary: Cat Dry Food
+            secondary: Remove from dry trays
+            icon: mdi:bowl
+            icon_color: >
+              {{ 'green' if is_state('input_boolean.chore_cat_dry_food', 'on') else 'orange' }}
+            tap_action:
+              action: call-service
+              service: input_boolean.toggle
+              target:
+                entity_id: input_boolean.chore_cat_dry_food
+            badge_icon: >
+              {{ 'mdi:check-circle' if is_state('input_boolean.chore_cat_dry_food', 'on') else '' }}
+            badge_color: green
+
+          # ── Dishwasher ────────────────────────────────────────────────────
+          - type: custom:mushroom-template-card
+            primary: Dishwasher
+            secondary: Start the dishwasher
+            icon: mdi:dishwasher
+            icon_color: >
+              {{ 'green' if is_state('input_boolean.chore_dishwasher', 'on') else 'blue' }}
+            tap_action:
+              action: call-service
+              service: input_boolean.toggle
+              target:
+                entity_id: input_boolean.chore_dishwasher
+            badge_icon: >
+              {{ 'mdi:check-circle' if is_state('input_boolean.chore_dishwasher', 'on') else '' }}
+            badge_color: green
+
+          # ── Laundry sweep ─────────────────────────────────────────────────
+          - type: custom:mushroom-template-card
+            primary: Laundry Sweep
+            secondary: Check all laundry
+            icon: mdi:washing-machine
+            icon_color: >
+              {{ 'green' if is_state('input_boolean.chore_laundry', 'on') else 'blue' }}
+            tap_action:
+              action: call-service
+              service: input_boolean.toggle
+              target:
+                entity_id: input_boolean.chore_laundry
+            badge_icon: >
+              {{ 'mdi:check-circle' if is_state('input_boolean.chore_laundry', 'on') else '' }}
+            badge_color: green
+
+          # ── Clean kitchen ─────────────────────────────────────────────────
+          - type: custom:mushroom-template-card
+            primary: Clean Kitchen
+            secondary: Wipe down and tidy
+            icon: mdi:countertop
+            icon_color: >
+              {{ 'green' if is_state('input_boolean.chore_kitchen', 'on') else 'blue' }}
+            tap_action:
+              action: call-service
+              service: input_boolean.toggle
+              target:
+                entity_id: input_boolean.chore_kitchen
+            badge_icon: >
+              {{ 'mdi:check-circle' if is_state('input_boolean.chore_kitchen', 'on') else '' }}
+            badge_color: green
+
+          # ── Diaper restock ────────────────────────────────────────────────
+          - type: custom:mushroom-template-card
+            primary: Diaper Areas
+            secondary: Restock supplies
+            icon: mdi:baby
+            icon_color: >
+              {{ 'green' if is_state('input_boolean.chore_diaper_restock', 'on') else 'pink' }}
+            tap_action:
+              action: call-service
+              service: input_boolean.toggle
+              target:
+                entity_id: input_boolean.chore_diaper_restock
+            badge_icon: >
+              {{ 'mdi:check-circle' if is_state('input_boolean.chore_diaper_restock', 'on') else '' }}
+            badge_color: green
+
+          # ── Take out trash (Thursdays only) ───────────────────────────────
+          - type: custom:mushroom-template-card
+            primary: Take Out Trash
+            secondary: Thursday pickup
+            icon: mdi:trash-can
+            icon_color: >
+              {{ 'green' if is_state('input_boolean.chore_trash', 'on') else 'deep-orange' }}
+            tap_action:
+              action: call-service
+              service: input_boolean.toggle
+              target:
+                entity_id: input_boolean.chore_trash
+            badge_icon: >
+              {{ 'mdi:check-circle' if is_state('input_boolean.chore_trash', 'on') else '' }}
+            badge_color: green
+            visibility:
+              - condition: template
+                value_template: "{{ now().weekday() == 3 }}"

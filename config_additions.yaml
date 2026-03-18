@@ -70,6 +70,59 @@
 #           {{ trigger.to_state.state | round(1) }}°F — check the door!
 
 
+# ── Baby Schedule — Helpers ──────────────────────────────────────────────────
+# Add these to your configuration.yaml (or via Settings → Helpers in the HA UI)
+#
+# input_datetime:
+#   last_feed_time:
+#     name: Last Feed Time
+#     has_date: true
+#     has_time: true
+#
+# input_boolean:
+#   chore_cat_wet_trays:
+#     name: Pick up cat wet trays
+#     icon: mdi:food-variant
+#   chore_cat_dry_food:
+#     name: Remove cat dry food
+#     icon: mdi:bowl
+#   chore_dishwasher:
+#     name: Start dishwasher
+#     icon: mdi:dishwasher
+#   chore_laundry:
+#     name: Laundry sweep
+#     icon: mdi:washing-machine
+#   chore_kitchen:
+#     name: Clean kitchen
+#     icon: mdi:countertop
+#   chore_diaper_restock:
+#     name: Restock diaper areas
+#     icon: mdi:baby
+#   chore_trash:
+#     name: Take out trash
+#     icon: mdi:trash-can
+
+
+# ── Baby Schedule — Midnight Chore Reset Automation ──────────────────────────
+# Add to automations.yaml:
+#
+# - alias: "Reset Nightly Chores"
+#   trigger:
+#     - platform: time
+#       at: "00:00:00"
+#   action:
+#     - service: input_boolean.turn_off
+#       target:
+#         entity_id:
+#           - input_boolean.chore_cat_wet_trays
+#           - input_boolean.chore_cat_dry_food
+#           - input_boolean.chore_dishwasher
+#           - input_boolean.chore_laundry
+#           - input_boolean.chore_kitchen
+#           - input_boolean.chore_diaper_restock
+#           - input_boolean.chore_trash
+
+
 # ── Lock Battery Low Notification ───────────────────────────────────────────
 # Add to automations.yaml:
 #
