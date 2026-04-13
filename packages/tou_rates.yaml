@@ -1,0 +1,196 @@
+# ════════════════════════════════════════════════════════════════════════════
+# SDGE EV-TOU-5 Rate Package
+# ════════════════════════════════════════════════════════════════════════════
+# Rate plan: EV-TOU-5 with San Diego Community Power (SDCP) generation
+# Solar: 6.49 kW Enphase system under NEM 2.0
+#
+# Period schedule (all local time):
+#   Super Off-Peak: midnight–6am weekdays / midnight–2pm weekends+holidays
+#   On-Peak:        4pm–9pm EVERY day
+#   Off-Peak:       all other hours
+#
+# Seasons:
+#   Summer: June 1 – October 31
+#   Winter: November 1 – May 31
+#
+# To update rates: Settings → Helpers → search "tou_rate_"
+# ════════════════════════════════════════════════════════════════════════════
+
+
+# ── Workday sensor (holiday detection) ───────────────────────────────────────
+# Returns ON = workday (Mon–Fri, not a US federal holiday)
+#         OFF = weekend or holiday → use weekend/holiday period schedule
+binary_sensor:
+  - platform: workday
+    name: Workday Sensor
+    country: US
+    workdays: [mon, tue, wed, thu, fri]
+    excludes: [holiday, sat, sun]
+
+
+# ── Configurable rate helpers ─────────────────────────────────────────────────
+# Update these when SDGE adjusts rates — no template editing needed.
+input_number:
+  tou_rate_super_off_peak_summer:
+    name: "Rate: Super Off-Peak (Summer)"
+    min: 0.01
+    max: 2.00
+    step: 0.001
+    initial: 0.18
+    unit_of_measurement: "$/kWh"
+    icon: mdi:currency-usd
+
+  tou_rate_off_peak_summer:
+    name: "Rate: Off-Peak (Summer)"
+    min: 0.01
+    max: 2.00
+    step: 0.001
+    initial: 0.32
+    unit_of_measurement: "$/kWh"
+    icon: mdi:currency-usd
+
+  tou_rate_on_peak_summer:
+    name: "Rate: On-Peak (Summer)"
+    min: 0.01
+    max: 2.00
+    step: 0.001
+    initial: 0.78
+    unit_of_measurement: "$/kWh"
+    icon: mdi:currency-usd
+
+  tou_rate_super_off_peak_winter:
+    name: "Rate: Super Off-Peak (Winter)"
+    min: 0.01
+    max: 2.00
+    step: 0.001
+    initial: 0.17
+    unit_of_measurement: "$/kWh"
+    icon: mdi:currency-usd
+
+  tou_rate_off_peak_winter:
+    name: "Rate: Off-Peak (Winter)"
+    min: 0.01
+    max: 2.00
+    step: 0.001
+    initial: 0.30
+    unit_of_measurement: "$/kWh"
+    icon: mdi:currency-usd
+
+  tou_rate_on_peak_winter:
+    name: "Rate: On-Peak (Winter)"
+    min: 0.01
+    max: 2.00
+    step: 0.001
+    initial: 0.50
+    unit_of_measurement: "$/kWh"
+    icon: mdi:currency-usd
+
+
+# ── Template sensors ──────────────────────────────────────────────────────────
+template:
+  - sensor:
+
+      # ── Current season ──────────────────────────────────────────────────────
+      - name: tou_current_season
+        unique_id: tou_current_season
+        icon: mdi:calendar
+        state: >
+          {% if 6 <= now().month <= 10 %}summer{% else %}winter{% endif %}
+
+      # ── Current TOU period ───────────────────────────────────────────────────
+      # On-peak is checked FIRST — it applies every day including weekends.
+      # Weekend/holiday super off-peak runs until 2pm instead of 6am.
+      - name: tou_current_period
+        unique_id: tou_current_period
+        icon: mdi:clock-time-four-outline
+        state: >
+          {% set h = now().hour %}
+          {% set is_workday = is_state('binary_sensor.workday_sensor', 'on') %}
+          {% if 16 <= h < 21 %}
+            on_peak
+          {% elif is_workday and h < 6 %}
+            super_off_peak
+          {% elif not is_workday and h < 14 %}
+            super_off_peak
+          {% else %}
+            off_peak
+          {% endif %}
+
+      # ── Current rate ($/kWh) ─────────────────────────────────────────────────
+      - name: tou_current_rate
+        unique_id: tou_current_rate
+        unit_of_measurement: "$/kWh"
+        state_class: measurement
+        icon: mdi:currency-usd
+        state: >
+          {% set p = states('sensor.tou_current_period') %}
+          {% set s = states('sensor.tou_current_season') %}
+          {% if p == 'super_off_peak' and s == 'summer' %}
+            {{ states('input_number.tou_rate_super_off_peak_summer') | float(0.18) | round(3) }}
+          {% elif p == 'super_off_peak' %}
+            {{ states('input_number.tou_rate_super_off_peak_winter') | float(0.17) | round(3) }}
+          {% elif p == 'off_peak' and s == 'summer' %}
+            {{ states('input_number.tou_rate_off_peak_summer') | float(0.32) | round(3) }}
+          {% elif p == 'off_peak' %}
+            {{ states('input_number.tou_rate_off_peak_winter') | float(0.30) | round(3) }}
+          {% elif p == 'on_peak' and s == 'summer' %}
+            {{ states('input_number.tou_rate_on_peak_summer') | float(0.78) | round(3) }}
+          {% else %}
+            {{ states('input_number.tou_rate_on_peak_winter') | float(0.50) | round(3) }}
+          {% endif %}
+
+      # ── AC cost per hour (3.0 kW Mitsubishi Mr. Slim assumption) ────────────
+      - name: tou_ac_cost_per_hour
+        unique_id: tou_ac_cost_per_hour
+        unit_of_measurement: "$/hr"
+        state_class: measurement
+        icon: mdi:air-conditioner
+        state: >
+          {{ (states('sensor.tou_current_rate') | float(0) * 3.0) | round(2) }}
+
+      # ── Next period change timestamp ──────────────────────────────────────────
+      - name: tou_next_change
+        unique_id: tou_next_change
+        device_class: timestamp
+        state: >
+          {% set h = now().hour %}
+          {% set is_workday = is_state('binary_sensor.workday_sensor', 'on') %}
+          {% set tomorrow = today_at('00:00') + timedelta(days=1) %}
+          {% if 16 <= h < 21 %}
+            {{ today_at('21:00').isoformat() }}
+          {% elif is_workday and h < 6 %}
+            {{ today_at('06:00').isoformat() }}
+          {% elif not is_workday and h < 14 %}
+            {{ today_at('14:00').isoformat() }}
+          {% elif h < 16 %}
+            {{ today_at('16:00').isoformat() }}
+          {% else %}
+            {{ tomorrow.isoformat() }}
+          {% endif %}
+
+      # ── Human-readable countdown to next period change ───────────────────────
+      - name: tou_time_until_next_change
+        unique_id: tou_time_until_next_change
+        icon: mdi:timer-outline
+        state: >
+          {% set next = as_datetime(states('sensor.tou_next_change')) %}
+          {% set diff = ((as_timestamp(next) - as_timestamp(now())) / 60) | int %}
+          {% if diff <= 0 %}
+            now
+          {% elif diff < 60 %}
+            {{ diff }}m
+          {% else %}
+            {{ (diff / 60) | int }}h {{ diff % 60 }}m
+          {% endif %}
+
+      # ── Cheapest window description for today ─────────────────────────────────
+      - name: tou_cheapest_window_today
+        unique_id: tou_cheapest_window_today
+        icon: mdi:star-circle-outline
+        state: >
+          {% set is_workday = is_state('binary_sensor.workday_sensor', 'on') %}
+          {% if is_workday %}
+            12 AM – 6 AM · after 9 PM
+          {% else %}
+            12 AM – 2 PM · after 9 PM
+          {% endif %}

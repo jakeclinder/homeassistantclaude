@@ -177,3 +177,149 @@ views:
             entity: sensor.mainfreezer_temp_battery
             name: Main Sensor Battery
             icon: mdi:battery
+
+      # ════════════════════════════════════════════════════════════════════════
+      # ENERGY RATES — SDGE EV-TOU-5
+      # ════════════════════════════════════════════════════════════════════════
+
+      # ── Hero: Current period + rate ───────────────────────────────────────
+      - type: grid
+        title: Energy Rates
+        column_span: 3
+        cards:
+          - type: custom:mushroom-template-card
+            layout: horizontal
+            primary: >
+              {% set p = states('sensor.tou_current_period') %}
+              {% if p == 'super_off_peak' %}Super Off-Peak
+              {% elif p == 'off_peak' %}Off-Peak
+              {% elif p == 'on_peak' %}On-Peak
+              {% else %}Unknown{% endif %}
+            secondary: >
+              ${{ states('sensor.tou_current_rate') | float(0) | round(3) }}/kWh
+              · ${{ states('sensor.tou_ac_cost_per_hour') | float(0) | round(2) }}/hr to run AC
+            icon: mdi:lightning-bolt-circle
+            icon_color: >
+              {% set p = states('sensor.tou_current_period') %}
+              {% if p == 'super_off_peak' %}green
+              {% elif p == 'off_peak' %}amber
+              {% else %}red{% endif %}
+            badge_icon: >
+              {{ 'mdi:alert-circle' if is_state('sensor.tou_current_period', 'on_peak') else '' }}
+            badge_color: red
+
+          # ── Next change countdown ─────────────────────────────────────────
+          - type: custom:mushroom-template-card
+            primary: >
+              {% set p = states('sensor.tou_current_period') %}
+              {% set h = now().hour %}
+              {% set is_workday = is_state('binary_sensor.workday_sensor', 'on') %}
+              {% if p == 'on_peak' %}Off-Peak starts in {{ states('sensor.tou_time_until_next_change') }}
+              {% elif p == 'super_off_peak' and is_workday %}Off-Peak starts in {{ states('sensor.tou_time_until_next_change') }}
+              {% elif p == 'super_off_peak' %}Off-Peak starts in {{ states('sensor.tou_time_until_next_change') }}
+              {% elif h < 16 %}On-Peak starts in {{ states('sensor.tou_time_until_next_change') }}
+              {% else %}Super Off-Peak starts in {{ states('sensor.tou_time_until_next_change') }}{% endif %}
+            secondary: >
+              {% set next = as_datetime(states('sensor.tou_next_change')) %}
+              at {{ next.strftime('%-I:%M %p') }}
+            icon: mdi:clock-outline
+            icon_color: >
+              {% set p = states('sensor.tou_current_period') %}
+              {% if p == 'super_off_peak' %}green{% elif p == 'off_peak' %}amber{% else %}red{% endif %}
+
+          # ── Indoor / outdoor temps + solar ────────────────────────────────
+          - type: custom:mushroom-template-card
+            primary: >
+              {% set indoor = states('sensor.avg_indoor_temp') | float(0) | round(1) %}
+              {% set outdoor = states('sensor.average_outdoor_temperature') | float(0) | round(1) %}
+              {{ indoor }}°F inside · {{ outdoor }}°F outside
+            secondary: >
+              {% set indoor = states('sensor.avg_indoor_temp') | float(0) %}
+              {% set outdoor = states('sensor.average_outdoor_temperature') | float(0) %}
+              {% set solar = states('sensor.envoy_202207116699_current_power_production') | float(0) %}
+              Δ {{ (outdoor - indoor) | abs | round(1) }}°F
+              · Solar: {{ solar | round(2) }} kW{% if solar > 0.5 %} ☀️{% endif %}
+            icon: mdi:home-thermometer
+            icon_color: >
+              {% set indoor = states('sensor.avg_indoor_temp') | float(0) %}
+              {% if indoor > 76 %}red{% elif indoor > 72 %}orange{% else %}green{% endif %}
+
+          # ── Decision hint ─────────────────────────────────────────────────
+          - type: custom:mushroom-template-card
+            layout: horizontal
+            primary: >
+              {% set p = states('sensor.tou_current_period') %}
+              {% set indoor = states('sensor.avg_indoor_temp') | float(0) %}
+              {% set outdoor = states('sensor.average_outdoor_temperature') | float(0) %}
+              {% set solar_kw = states('sensor.envoy_202207116699_current_power_production') | float(0) %}
+              {% set solar_producing = solar_kw > 0.5 %}
+              {% set comfort = 72 %}
+              {% set h = now().hour %}
+              {% if p == 'on_peak' and indoor > comfort %}
+                On-peak hours. Consider delaying AC until 9 PM if tolerable.
+              {% elif p in ['off_peak', 'super_off_peak'] and solar_producing and outdoor > indoor %}
+                Good time to pre-cool — solar is producing and rates are lower.
+              {% elif p == 'super_off_peak' %}
+                Cheapest rate of the day. Run what you need.
+              {% elif p == 'off_peak' and outdoor >= indoor and h < 16 %}
+                Consider cooling down now before on-peak starts at 4 PM.
+              {% else %}
+                Normal off-peak rate.
+              {% endif %}
+            icon: >
+              {% set p = states('sensor.tou_current_period') %}
+              {% set indoor = states('sensor.avg_indoor_temp') | float(0) %}
+              {% if p == 'on_peak' and indoor > 72 %}mdi:alert-circle
+              {% elif p == 'super_off_peak' %}mdi:star-circle
+              {% elif states('sensor.envoy_202207116699_current_power_production') | float(0) > 0.5 %}mdi:solar-power
+              {% else %}mdi:lightbulb-outline{% endif %}
+            icon_color: >
+              {% set p = states('sensor.tou_current_period') %}
+              {% set indoor = states('sensor.avg_indoor_temp') | float(0) %}
+              {% if p == 'on_peak' and indoor > 72 %}red
+              {% elif p == 'super_off_peak' %}green
+              {% elif states('sensor.envoy_202207116699_current_power_production') | float(0) > 0.5 %}yellow
+              {% else %}blue{% endif %}
+
+          # ── Today's period schedule (text strip) ──────────────────────────
+          # Install custom:apexcharts-card via HACS for a visual 24h bar chart
+          - type: custom:mushroom-template-card
+            primary: Today's Schedule
+            secondary: >
+              {% set is_workday = is_state('binary_sensor.workday_sensor', 'on') %}
+              {% if is_workday %}
+                SOP 12–6 AM · Off-Peak 6 AM–4 PM · On-Peak 4–9 PM · Off-Peak 9 PM–12 AM
+              {% else %}
+                SOP 12 AM–2 PM · Off-Peak 2–4 PM · On-Peak 4–9 PM · Off-Peak 9 PM–12 AM
+              {% endif %}
+            icon: mdi:calendar-clock
+            icon_color: >
+              {% set p = states('sensor.tou_current_period') %}
+              {% if p == 'super_off_peak' %}green{% elif p == 'off_peak' %}amber{% else %}red{% endif %}
+
+          # ── Cheapest window ───────────────────────────────────────────────
+          - type: custom:mushroom-template-card
+            primary: Cheapest Window Today
+            secondary: "{{ states('sensor.tou_cheapest_window_today') }}"
+            icon: mdi:cash-clock
+            icon_color: green
+
+      # ── Rate reference (tap to edit) ──────────────────────────────────────
+      - type: grid
+        title: Current Rates (tap to edit)
+        column_span: 3
+        cards:
+          - type: entities
+            entities:
+              - entity: input_number.tou_rate_super_off_peak_summer
+                name: "☀️ Super Off-Peak (Summer)"
+              - entity: input_number.tou_rate_off_peak_summer
+                name: "☀️ Off-Peak (Summer)"
+              - entity: input_number.tou_rate_on_peak_summer
+                name: "☀️ On-Peak (Summer)"
+              - entity: input_number.tou_rate_super_off_peak_winter
+                name: "❄️ Super Off-Peak (Winter)"
+              - entity: input_number.tou_rate_off_peak_winter
+                name: "❄️ Off-Peak (Winter)"
+              - entity: input_number.tou_rate_on_peak_winter
+                name: "❄️ On-Peak (Winter)"

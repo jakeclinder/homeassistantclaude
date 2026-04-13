@@ -4,6 +4,44 @@
 # Add the sections below to your existing configuration.yaml
 
 
+# ── SDGE EV-TOU-5 Energy Rates — Deployment Steps ───────────────────────────
+#
+# STEP 1: Enable the packages directory in configuration.yaml
+#
+#   homeassistant:
+#     packages: !include_dir_named packages
+#
+#   This tells HA to load every YAML file in your config's packages/ folder.
+#   Copy packages/tou_rates.yaml from this repo to /config/packages/tou_rates.yaml
+#   on your HA instance. Then restart HA (Settings → System → Restart).
+#
+# STEP 2: Verify sensors after restart
+#   Developer Tools → States → filter for "tou_"
+#   You should see 7 sensors:
+#     sensor.tou_current_period     (super_off_peak / off_peak / on_peak)
+#     sensor.tou_current_season     (summer / winter)
+#     sensor.tou_current_rate       ($/kWh float)
+#     sensor.tou_ac_cost_per_hour   ($/hr float)
+#     sensor.tou_next_change        (timestamp)
+#     sensor.tou_time_until_next_change (e.g. "2h 14m")
+#     sensor.tou_cheapest_window_today  (e.g. "12 AM – 6 AM · after 9 PM")
+#   Also check: binary_sensor.workday_sensor (on = weekday, off = weekend/holiday)
+#
+# STEP 3: Update rate values if SDGE changes them
+#   Settings → Helpers → search "tou_rate_" → edit the value directly in the UI
+#   No YAML editing needed.
+#
+# STEP 4: (Optional) Install ApexCharts Card via HACS for a visual 24h strip
+#   HACS → Frontend → search "ApexCharts Card" → Download
+#   The dashboards currently show a text-based schedule strip; ApexCharts
+#   would enable a color-coded bar chart. This can be added later.
+#
+# STEP 5: Reload dashboards
+#   The TOU card section has been added to 02_climate.yaml and
+#   07_baby_schedule.yaml. After reloading Lovelace (or restarting HA),
+#   the Energy Rates section will appear at the bottom of each dashboard.
+
+
 # ── 4th Waze Travel Time (Home → Chris's House) ──────────────────────────────
 # Add this to your existing sensor: section, or create one if needed.
 # Replace the origin/destination addresses with actual ones.
@@ -68,6 +106,75 @@
 #         message: >
 #           {{ trigger.to_state.name }} is at
 #           {{ trigger.to_state.state | round(1) }}°F — check the door!
+
+
+# ── Baby Schedule — Helpers ──────────────────────────────────────────────────
+# Add these to your configuration.yaml (or via Settings → Helpers in the HA UI)
+#
+# input_datetime:
+#   last_feed_time:
+#     name: Last Feed Time
+#     has_date: true
+#     has_time: true
+#
+# input_boolean:
+#   chore_cat_wet_trays:
+#     name: Pick up cat wet trays
+#     icon: mdi:food-variant
+#   chore_cat_dry_food:
+#     name: Remove cat dry food
+#     icon: mdi:bowl
+#   chore_dishwasher:
+#     name: Start dishwasher
+#     icon: mdi:dishwasher
+#   chore_laundry:
+#     name: Laundry sweep
+#     icon: mdi:washing-machine
+#   chore_kitchen:
+#     name: Clean kitchen
+#     icon: mdi:countertop
+#   chore_diaper_restock:
+#     name: Restock diaper areas
+#     icon: mdi:baby
+#   chore_trash:
+#     name: Take out trash
+#     icon: mdi:trash-can
+
+
+# ── Baby Schedule — Log Feed Script ─────────────────────────────────────────
+# Add to scripts.yaml (or via Settings → Scripts → + Add Script → YAML mode):
+#
+# log_feed_now:
+#   alias: Log Feed Now
+#   sequence:
+#     - service: input_datetime.set_datetime
+#       target:
+#         entity_id: input_datetime.last_feed_time
+#       data:
+#         datetime: "{{ now().strftime('%Y-%m-%d %H:%M:%S') }}"
+#
+# The Log Feed Now button on the dashboard calls script.log_feed_now.
+# Scripts evaluate Jinja2 in data fields — tap_action data fields do not.
+
+
+# ── Baby Schedule — Midnight Chore Reset Automation ──────────────────────────
+# Add to automations.yaml:
+#
+# - alias: "Reset Nightly Chores"
+#   trigger:
+#     - platform: time
+#       at: "00:00:00"
+#   action:
+#     - service: input_boolean.turn_off
+#       target:
+#         entity_id:
+#           - input_boolean.chore_cat_wet_trays
+#           - input_boolean.chore_cat_dry_food
+#           - input_boolean.chore_dishwasher
+#           - input_boolean.chore_laundry
+#           - input_boolean.chore_kitchen
+#           - input_boolean.chore_diaper_restock
+#           - input_boolean.chore_trash
 
 
 # ── Lock Battery Low Notification ───────────────────────────────────────────
