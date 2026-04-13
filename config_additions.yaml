@@ -4,6 +4,44 @@
 # Add the sections below to your existing configuration.yaml
 
 
+# ── SDGE EV-TOU-5 Energy Rates — Deployment Steps ───────────────────────────
+#
+# STEP 1: Enable the packages directory in configuration.yaml
+#
+#   homeassistant:
+#     packages: !include_dir_named packages
+#
+#   This tells HA to load every YAML file in your config's packages/ folder.
+#   Copy packages/tou_rates.yaml from this repo to /config/packages/tou_rates.yaml
+#   on your HA instance. Then restart HA (Settings → System → Restart).
+#
+# STEP 2: Verify sensors after restart
+#   Developer Tools → States → filter for "tou_"
+#   You should see 7 sensors:
+#     sensor.tou_current_period     (super_off_peak / off_peak / on_peak)
+#     sensor.tou_current_season     (summer / winter)
+#     sensor.tou_current_rate       ($/kWh float)
+#     sensor.tou_ac_cost_per_hour   ($/hr float)
+#     sensor.tou_next_change        (timestamp)
+#     sensor.tou_time_until_next_change (e.g. "2h 14m")
+#     sensor.tou_cheapest_window_today  (e.g. "12 AM – 6 AM · after 9 PM")
+#   Also check: binary_sensor.workday_sensor (on = weekday, off = weekend/holiday)
+#
+# STEP 3: Update rate values if SDGE changes them
+#   Settings → Helpers → search "tou_rate_" → edit the value directly in the UI
+#   No YAML editing needed.
+#
+# STEP 4: (Optional) Install ApexCharts Card via HACS for a visual 24h strip
+#   HACS → Frontend → search "ApexCharts Card" → Download
+#   The dashboards currently show a text-based schedule strip; ApexCharts
+#   would enable a color-coded bar chart. This can be added later.
+#
+# STEP 5: Reload dashboards
+#   The TOU card section has been added to 02_climate.yaml and
+#   07_baby_schedule.yaml. After reloading Lovelace (or restarting HA),
+#   the Energy Rates section will appear at the bottom of each dashboard.
+
+
 # ── 4th Waze Travel Time (Home → Chris's House) ──────────────────────────────
 # Add this to your existing sensor: section, or create one if needed.
 # Replace the origin/destination addresses with actual ones.
